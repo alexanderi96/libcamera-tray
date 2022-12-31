@@ -1,94 +1,160 @@
 package main
 
 import (
+    "fmt"
     "time"
+    "os"
     "os/exec"
     "log"
     "strconv"
+    "encoding/json"
     _ "embed"
 
-    "github.com/getlantern/systray"
+    "fyne.io/fyne/v2"
+    "fyne.io/fyne/v2/app"
+    "fyne.io/fyne/v2/container"
+    "fyne.io/fyne/v2/theme"
+    "fyne.io/fyne/v2/widget"
+    "fyne.io/fyne/v2/layout"
+
 )
 
+type Parameter struct {
+    Command string
+    Default string
+    Description string
+}
 
 var (
     //go:embed assets/camera.ico
     icon []byte
+
+    //go:embed defaultParams.json
+    defaultParamsJson []byte
+
+    defaultParams []Parameter
+    customParams []Parameter
 )
 
 const (
     appName string = "libcamera-tray"
     appDesc string = "libcamera wrapper wreitten in go"
+    saveFolder string = "/Pictures/libcamera-tray/"
 )
 
 func main() {
-    systray.Run(onReady, onExit)
+    defaultParams = loadDefaultParams()
+    
+    a := app.New()
+    w := a.NewWindow(appName)
+
+    // let's check thhat we are running on a desktop, so we can show the tray icon
+    // if desk, ok := a.(desktop.App); ok {
+    //     m := fyne.NewMenu(appName,
+    //         fyne.NewMenuItem("Show Preview", func() {togglePreview()}),
+    //         fyne.NewMenuItem("Shot", func() {shot()}),
+    //         fyne.NewMenuItem("Settings", func() {w.Show()}),
+    //     )
+    //     desk.SetSystemTrayMenu(m)
+    // }
+
+    
+    
+    previewBtn := widget.NewButton("Toggle Preview", func() {
+        togglePreview()
+    })
+    shotBtn := widget.NewButton("Shot", func() {
+        shot()
+    })
+
+
+    tabs := container.NewAppTabs(
+        container.NewTabItemWithIcon("Home", theme.HomeIcon(), container.New(layout.NewVBoxLayout(), previewBtn, shotBtn)),
+        container.NewTabItem("Settings", widget.NewList(
+        func() int {
+            return len(defaultParams)
+        },
+        func() fyne.CanvasObject {
+            return widget.NewLabel("template")
+        },
+        func(i widget.ListItemID, o fyne.CanvasObject) {
+            o.(*widget.Label).SetText(fmt.Sprintf(defaultParams[i].Command, defaultParams[i].Default))
+        })),
+    )
+
+    tabs.SetTabLocation(container.TabLocationLeading)
+
+    w.SetContent(tabs)
+    //w.SetCloseIntercept(func() {w.Hide()})
+    //w.Resize(fyne.Size{300, 200})
+    w.ShowAndRun()
 }
 
-func onReady() {
+func loadDefaultParams() (parametri []Parameter) {
+    err := json.Unmarshal(defaultParamsJson, &parametri)
 
-    systray.SetIcon(icon)
-    systray.SetTitle(appName)
-    systray.SetTooltip(appDesc)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    runPreview := systray.AddMenuItem("Preview", "Preview")
-    runShot := systray.AddMenuItem("Shot", "Capture the picture.")
-        
-    systray.AddSeparator()
-    mQuit := systray.AddMenuItem("Quit", "Quit the whole app.")
+    return
+}
 
-    prev := exec.Command("libcamera-hello", "-t", "0")
+func getSettings() {
+    //....
+}
 
-    togglePreview := func() {
-        if getPid("libcamera-hello") == "0" {
-            log.Print("Starting preview.")
-            prev = exec.Command("libcamera-hello", "-t", "0")
-            runPreview.SetTitle("Stop Preview")
-            prev.Start()
+func togglePreview() {
+    if !isItRunning("libcamera-hello") {
+        log.Print("Starting preview.")
+        prev := exec.Command("libcamera-hello", "-t", "0")
+        prev.Start()
+    } else {
+        log.Print("Stopping preview.")
+
+        pid, err := strconv.Atoi(getPid("libcamera-hello"))
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        proc, err := os.FindProcess(pid)
+
+        if err != nil {
+            log.Fatal(err)
         } else {
-            log.Print("Stopping preview.")
-            runPreview.SetTitle("Preview")
-            prev.Process.Kill()
-        }
-    }
-
-    killPreviewIfAlive := func() (wasAlive bool) {
-        wasAlive = false
-        if getPid("libcamera-hello") != "0" {
-            wasAlive = true
-            togglePreview()
-        }
-        return
-    }
-
-    for {
-        select {
-        case <-runPreview.ClickedCh:
-            togglePreview()
-        
-        case <-runShot.ClickedCh:
-            wasPreviewOpen := killPreviewIfAlive()
-            date := time.Now().Unix()
-            strdate := strconv.FormatInt(date, 10)
-            name := "$HOME/Pictures/libcamera-tray/" + "pic" + strdate + ".jpg"
-            shot := exec.Command("libcamera-still", "-n", "-o", name)
-            log.Print("Taking a shot.")
-            shot.Run()
-            if wasPreviewOpen {
-                togglePreview()
-            }
-
-        case <-mQuit.ClickedCh:
-            _ = killPreviewIfAlive()
-            systray.Quit()
-            return
+            proc.Kill()
         }
     }
 }
 
-func onExit() {
-    // Cleaning stuff here.
-    log.Print("Exiting now...")
+func shot() {
+    running := false
+    if running = isItRunning("libcamera-hello"); running {
+        togglePreview()
+    }
+    date := time.Now().Unix()
+    strdate := strconv.FormatInt(date, 10)
+
+    homeFolder, err := os.UserHomeDir()
+    if err != nil {
+        log.Fatal( err )
+    }
+
+    name := homeFolder + saveFolder + "pic" + strdate + ".jpg"
+    shot := exec.Command("libcamera-still", "-n", "-o", name)    
+    log.Print("Taking a shot.", name)
+    shot.Run()
+    if running {
+        togglePreview()
+    }
+}            
+
+func isItRunning(appName string) bool {
+    if getPid(appName) != "0" {
+        return true
+    }
+    return false
 }
 
 func getPid(appName string) string {
@@ -96,5 +162,6 @@ func getPid(appName string) string {
     if err != nil {
         return "0"
     }
-    return string(out)
+    pid := string(out)
+    return pid[:len(pid)-1]
 }

@@ -1,0 +1,8 @@
+Website = "https://example.com"
+
+[Details]
+Icon = "assets/camera.ico"
+Name = "libcamera-tray"
+ID = "it.alexanderi96.libcamera-tray"
+Version = "0.0.1"
+Build = 1
