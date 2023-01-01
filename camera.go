@@ -142,13 +142,13 @@ func shot() {
         log.Fatal( err )
     }
     
-    path := homeFolder + "/Pictures/libcamera-tray/" + currDate.Format("01-02-2006") + "/"
+    path := fmt.Sprintf("%s/Pictures/libcamera-tray/%s", homeFolder, currDate.Format("01-02-2006"))
 
     if err := os.MkdirAll(path, os.ModePerm); err != nil {
         log.Println(err)
     }
 
-    shot := exec.Command("libcamera-still", "-n", "--immediate", "-o", path + "pic" + epoch + ".jpg")
+    shot := exec.Command("libcamera-still", "-n", "--immediate", "-o", fmt.Sprintf("%s/pic%s.jpg", path, epoch))
     shot.Run()
     if running {
         togglePreview()
