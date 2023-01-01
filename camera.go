@@ -20,6 +20,7 @@ var (
 const (
     appName string = "libcamera-tray"
     appDesc string = "libcamera wrapper wreitten in go"
+    bot string = "/workspace/myrepo/PiCamBot/PiCamBot"
 )
 
 func main() {
@@ -34,11 +35,17 @@ func onReady() {
 
     runPreview := systray.AddMenuItem("Preview", "Preview")
     runShot := systray.AddMenuItem("Shot", "Capture the picture.")
-        
+    runBot := systray.AddMenuItem("Run Bot", "Bot")
+
     systray.AddSeparator()
     mQuit := systray.AddMenuItem("Quit", "Quit the whole app.")
 
     prev := exec.Command("libcamera-hello", "-t", "0")
+
+    homeFolder, err := os.UserHomeDir()
+    if err != nil {
+        log.Fatal( err )
+    }
 
     togglePreview := func() {
         if getPid("libcamera-hello") == "0" {
@@ -50,6 +57,22 @@ func onReady() {
             log.Print("Stopping preview.")
             runPreview.SetTitle("Preview")
             prev.Process.Kill()
+        }
+    }
+
+    botPos := homeFolder + bot
+    botComm := exec.Command(botPos)
+
+    toggleBot := func() {
+        if getPid(botPos) == "0" {
+            log.Print("Starting bot.")
+            botComm = exec.Command(botPos)
+            runBot.SetTitle("Stop Bot")
+            botComm.Start()
+        } else {
+            log.Print("Stopping bot.")
+            runBot.SetTitle("Run Bot")
+            botComm.Process.Kill()
         }
     }
 
@@ -73,11 +96,6 @@ func onReady() {
             currDate := time.Now()
             epoch := strconv.FormatInt(currDate.Unix(), 10)
             
-            homeFolder, err := os.UserHomeDir()
-            if err != nil {
-                log.Fatal( err )
-            }
-            
             path := homeFolder + "/Pictures/libcamera-tray/" + currDate.Format("01-02-2006") + "/"
 
             if err := os.MkdirAll(path, os.ModePerm); err != nil {
@@ -89,6 +107,9 @@ func onReady() {
             if wasPreviewOpen {
                 togglePreview()
             }
+
+        case <-runBot.ClickedCh:
+            toggleBot()
 
         case <-mQuit.ClickedCh:
             _ = killPreviewIfAlive()
