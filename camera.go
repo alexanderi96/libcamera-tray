@@ -86,7 +86,7 @@ func main() {
 
     w.SetContent(tabs)
     //w.SetCloseIntercept(func() {w.Hide()})
-    //w.Resize(fyne.Size{300, 200})
+    w.Resize(fyne.Size{300, 200})
     w.ShowAndRun()
 }
 
@@ -133,17 +133,22 @@ func shot() {
     if running = isItRunning("libcamera-hello"); running {
         togglePreview()
     }
-    date := time.Now().Unix()
-    strdate := strconv.FormatInt(date, 10)
-
+    log.Print("Taking a shot.")
+    currDate := time.Now()
+    epoch := strconv.FormatInt(currDate.Unix(), 10)
+    
     homeFolder, err := os.UserHomeDir()
     if err != nil {
         log.Fatal( err )
     }
+    
+    path := homeFolder + "/Pictures/libcamera-tray/" + currDate.Format("01-02-2006") + "/"
 
-    name := homeFolder + saveFolder + "pic" + strdate + ".jpg"
-    shot := exec.Command("libcamera-still", "-n", "-o", name)    
-    log.Print("Taking a shot.", name)
+    if err := os.MkdirAll(path, os.ModePerm); err != nil {
+        log.Println(err)
+    }
+
+    shot := exec.Command("libcamera-still", "-n", "--immediate", "-o", path + "pic" + epoch + ".jpg")
     shot.Run()
     if running {
         togglePreview()

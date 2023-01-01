@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-libcamera-tray
+libcamera-tray*
 
 # Test binary, built with `go test -c`
 *.test
