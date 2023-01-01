@@ -2,6 +2,7 @@ package main
 
 import (
     "time"
+    "os"
     "os/exec"
     "log"
     "strconv"
@@ -68,15 +69,22 @@ func onReady() {
         
         case <-runShot.ClickedCh:
             wasPreviewOpen := killPreviewIfAlive()
-            date := time.Now().Unix()
-            strdate := strconv.FormatInt(date, 10)
+            log.Print("Taking a shot.")
+            currDate := time.Now()
+            epoch := strconv.FormatInt(currDate.Unix(), 10)
+            
             homeFolder, err := os.UserHomeDir()
             if err != nil {
                 log.Fatal( err )
             }
-            name := homeFolder + "/Pictures/libcamera-tray/" + "pic" + strdate + ".jpg"
-            shot := exec.Command("libcamera-still", "-n", "-o", name)
-            log.Print("Taking a shot.")
+            
+            path := homeFolder + "/Pictures/libcamera-tray/" + currDate.Format("01-02-2006") + "/"
+
+            if err := os.MkdirAll(path, os.ModePerm); err != nil {
+                log.Println(err)
+            }
+
+            shot := exec.Command("libcamera-still", "-n", "-o", path + "pic" + epoch + ".jpg")
             shot.Run()
             if wasPreviewOpen {
                 togglePreview()
