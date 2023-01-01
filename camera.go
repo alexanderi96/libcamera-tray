@@ -78,7 +78,7 @@ func main() {
             return widget.NewLabel("template")
         },
         func(i widget.ListItemID, o fyne.CanvasObject) {
-            o.(*widget.Label).SetText(fmt.Sprintf(defaultParams[i].Command, defaultParams[i].Default))
+            o.(*widget.Label).SetText(fmt.Sprintf("%s = %s", defaultParams[i].Command, defaultParams[i].Default))
         })),
     )
 
@@ -122,9 +122,9 @@ func togglePreview() {
 
         if err != nil {
             log.Fatal(err)
-        } else {
-            proc.Kill()
         }
+
+        proc.Kill()
     }
 }
 
