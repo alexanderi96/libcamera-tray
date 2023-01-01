@@ -70,7 +70,11 @@ func onReady() {
             wasPreviewOpen := killPreviewIfAlive()
             date := time.Now().Unix()
             strdate := strconv.FormatInt(date, 10)
-            name := "$HOME/Pictures/libcamera-tray/" + "pic" + strdate + ".jpg"
+            homeFolder, err := os.UserHomeDir()
+            if err != nil {
+                log.Fatal( err )
+            }
+            name := homeFolder + "/Pictures/libcamera-tray/" + "pic" + strdate + ".jpg"
             shot := exec.Command("libcamera-still", "-n", "-o", name)
             log.Print("Taking a shot.")
             shot.Run()
