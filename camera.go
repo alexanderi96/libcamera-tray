@@ -7,37 +7,61 @@ import (
     "log"
     "strconv"
     _ "embed"
+    "encoding/json"
 
     "github.com/getlantern/systray"
 )
 
+type Parameter struct {
+    Command string
+    Default string
+    Description string
+}
 
 var (
     //go:embed assets/camera.ico
     icon []byte
+
+    //go:embed defaultParams.json
+    defaultParamsJson []byte
+
+    defaultParams = loadDefaultParams()
+    customParams []Parameter
 )
 
 const (
     appName string = "libcamera-tray"
     appDesc string = "libcamera wrapper wreitten in go"
     bot string = "/workspace/myrepo/PiCamBot/PiCamBot"
+    saveFolder string = "/Pictures/libcamera-tray"
 )
+
+func loadDefaultParams() (parametri []Parameter) {
+    err := json.Unmarshal(defaultParamsJson, &parametri)
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    return
+}
 
 func main() {
     systray.Run(onReady, onExit)
 }
 
 func onReady() {
-
     systray.SetIcon(icon)
     systray.SetTitle(appName)
     systray.SetTooltip(appDesc)
 
-    runPreview := systray.AddMenuItem("Preview", "Preview")
+    runPreview := systray.AddMenuItem("Preview", "Open the preview")
     runShot := systray.AddMenuItem("Shot", "Capture the picture.")
-    runBot := systray.AddMenuItem("Run Bot", "Bot")
 
     systray.AddSeparator()
+    runBot := systray.AddMenuItem("Run Bot", "Bot")
+    
+    //openSettings := systray.AddMenuItem("Settings", "Open settings page")
     mQuit := systray.AddMenuItem("Quit", "Quit the whole app.")
 
     prev := exec.Command("libcamera-hello", "-t", "0")
@@ -96,7 +120,7 @@ func onReady() {
             currDate := time.Now()
             epoch := strconv.FormatInt(currDate.Unix(), 10)
             
-            path := homeFolder + "/Pictures/libcamera-tray/" + currDate.Format("01-02-2006") + "/"
+            path := homeFolder + saveFolder + "/" + currDate.Format("01-02-2006") + "/"
 
             if err := os.MkdirAll(path, os.ModePerm); err != nil {
                 log.Println(err)
@@ -110,6 +134,9 @@ func onReady() {
 
         case <-runBot.ClickedCh:
             toggleBot()
+
+        // case <-openSettings.ClickedCh:
+        //     go OpenSettings()
 
         case <-mQuit.ClickedCh:
             _ = killPreviewIfAlive()
