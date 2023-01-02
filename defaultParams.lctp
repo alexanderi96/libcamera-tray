@@ -1,297 +1,238 @@
-[
-  {
-    "command": "width",
-    "default": "0",
-    "description": "Set the output image width (0 = use default value)"
+{
+  "width": {
+    "value": "0",
+    "description": "Set the output image width (0 = use value value)"
   },
-  {
-    "command": "height",
-    "default": "0",
-    "description": "Set the output image height (0 = use default value)"
+  "height": {
+    "value": "0",
+    "description": "Set the output image height (0 = use value value)"
   },
-  {
-    "command": "timeout",
-    "default": "5000",
+  "timeout": {
+    "value": "5000",
     "description": "Time (in ms) for which program runs"
   },
-  {
-    "command": "output",
-    "default": "",
+  "output": {
+    "value": "",
     "description": "Set the output file name"
   },
-  {
-    "command": "post-process-file",
-    "default": "",
+  "post-process-file": {
+    "value": "",
     "description": "Set the file name for configuring the post-processing"
   },
-  {
-    "command": "rawfull",
-    "default": "0",
+  "rawfull": {
+    "value": "0",
     "description": "Force use of full resolution raw frames"
   },
-  {
-    "command": "nopreview",
-    "default": "0",
+  "nopreview": {
+    "value": "0",
     "description": "Do not show a preview window"
   },
-  {
-    "command": "preview",
-    "default": "0,0,0,0",
+  "preview": {
+    "value": "0,0,0,0",
     "description": "Set the preview window dimensions, given as x,y,width,height e.g. 0,0,640,480"
   },
-  {
-    "command": "fullscreen",
-    "default": "0",
+  "fullscreen": {
+    "value": "0",
     "description": "Use a fullscreen preview window"
   },
-  {
-    "command": "hflip",
-    "default": "0",
+  "hflip": {
+    "value": "0",
     "description": "Request a horizontal flip transform"
   },
-  {
-    "command": "vflip",
-    "default": "0",
+  "vflip": {
+    "value": "0",
     "description": "Request a vertical flip transform"
   },
-  {
-    "command": "rotation",
-    "default": "0",
+  "rotation": {
+    "value": "0",
     "description": "Request an image rotation, 0 or 180"
   },
-  {
-    "command": "roi",
-    "default": "0,0,0,0",
+  "roi": {
+    "value": "0,0,0,0",
     "description": "Set region of interest (digital zoom) e.g. 0.25,0.25,0.5,0.5"
   },
-  {
-    "command": "shutter",
-    "default": "0",
+  "shutter": {
+    "value": "0",
     "description": "Set a fixed shutter speed in microseconds"
   },
-  {
-    "command": "analoggain",
-    "default": "0",
+  "analoggain": {
+    "value": "0",
     "description": "Set a fixed gain value (synonym for 'gain' option)"
   },
-  {
-    "command": "gain",
-    "default": "0",
+  "gain": {
+    "value": "0",
     "description": "Set a fixed gain value"
   },
-  {
-    "command": "metering",
-    "default": "centre",
+  "metering": {
+    "value": "centre",
     "description": "Set the metering mode (centre, spot, average, custom)"
   },
-  {
-    "command": "exposure",
-    "default": "normal",
+  "exposure": {
+    "value": "normal",
     "description": "Set the exposure mode (normal, sport)"
   },
-  {
-    "command": "ev",
-    "default": "0",
+  "ev": {
+    "value": "0",
     "description": "Set the EV exposure compensation, where 0 = no change"
   },
-  {
-    "command": "awb",
-    "default": "auto",
+  "awb": {
+    "value": "auto",
     "description": "Set the AWB mode (auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy, custom)"
   },
-  {
-    "command": "awbgains",
-    "default": "0, 0",
+  "awbgains": {
+    "value": "0, 0",
     "description": "Set explict red and blue gains (disable the automatic AWB algorithm)"
   },
-  {
-    "command": "flush",
-    "default": "0",
+  "flush": {
+    "value": "0",
     "description": "Flush output data as soon as possible"
   },
-  {
-    "command": "wrap",
-    "default": "0",
+  "wrap": {
+    "value": "0",
     "description": "When writing multiple output files, reset the counter when it reaches this number"
   },
-  {
-    "command": "brightness",
-    "default": "0",
+  "brightness": {
+    "value": "0",
     "description": "Adjust the brightness of the output images, in the range -1.0 to 1.0"
   },
-  {
-    "command": "contrast",
-    "default": "1",
+  "contrast": {
+    "value": "1",
     "description": "Adjust the contrast of the output image, where 1.0 = normal contrast"
   },
-  {
-    "command": "saturation",
-    "default": "1",
+  "saturation": {
+    "value": "1",
     "description": "Adjust the colour saturation of the output, where 1.0 = normal and 0.0 = greyscale"
   },
-  {
-    "command": "sharpness",
-    "default": "1",
+  "sharpness": {
+    "value": "1",
     "description": "Adjust the sharpness of the output image, where 1.0 = normal sharpening"
   },
-  {
-    "command": "framerate",
-    "default": "-1",
+  "framerate": {
+    "value": "-1",
     "description": "Set the fixed framerate for preview and video modes"
   },
-  {
-    "command": "denoise",
-    "default": "auto",
+  "denoise": {
+    "value": "auto",
     "description": "Sets the Denoise operating mode: auto, off, cdn_off, cdn_fast, cdn_hq"
   },
-  {
-    "command": "viewfinder-width",
-    "default": "0",
+  "viewfinder-width": {
+    "value": "0",
     "description": "Width of viewfinder frames from the camera (distinct from the preview window size)"
   },
-  {
-    "command": "viewfinder-height",
-    "default": "0",
+  "viewfinder-height": {
+    "value": "0",
     "description": "Height of viewfinder frames from the camera (distinct from the preview window size)"
   },
-  {
-    "command": "lores-width",
-    "default": "0",
+  "lores-width": {
+    "value": "0",
     "description": "Width of low resolution frames (use 0 to omit low resolution stream"
   },
-  {
-    "command": "lores-height",
-    "default": "0",
+  "lores-height": {
+    "value": "0",
     "description": "Height of low resolution frames (use 0 to omit low resolution stream"
   },
-  {
-    "command": "mode",
-    "default": "",
+  "mode": {
+    "value": "",
     "description": "Camera mode as W:H:bit-depth:packing, where packing is P (packed) or U (unpacked)"
   },
-  {
-    "command": "viewfinder-mode",
-    "default": "",
+  "viewfinder-mode": {
+    "value": "",
     "description": "Camera mode for preview as W:H:bit-depth:packing, where packing is P (packed) or U (unpacked)"
   },
-  {
-    "command": "buffer-count",
-    "default": "0",
+  "buffer-count": {
+    "value": "0",
     "description": "Number of in-flight requests (and buffers) configured for video, raw, and still."
   },
-  {
-    "command": "viewfinder-buffer-count",
-    "default": "0",
+  "viewfinder-buffer-count": {
+    "value": "0",
     "description": "Number of in-flight requests (and buffers) configured for preview window."
   },
-  {
-    "command": "autofocus-mode",
-    "default": "unset",
+  "autofocus-mode": {
+    "value": "unset",
     "description": "Control to set the mode of the AF (autofocus) algorithm.(manual, auto, continuous)"
   },
-  {
-    "command": "autofocus-range",
-    "default": "unset",
+  "autofocus-range": {
+    "value": "unset",
     "description": "Set the range of focus distances that is scanned.(normal, macro, full)"
   },
-  {
-    "command": "autofocus-speed",
-    "default": "unset",
+  "autofocus-speed": {
+    "value": "unset",
     "description": "Control that determines whether the AF algorithm is to move the lens as quickly as possible or more steadily.(normal, fast)"
   },
-  {
-    "command": "autofocus-window",
-    "default": "0,0,0,0",
+  "autofocus-window": {
+    "value": "0,0,0,0",
     "description": "Sets AfMetering to  AfMeteringWindows an set region used, e.g. 0.25,0.25,0.5,0.5"
   },
-  {
-    "command": "lens-position",
-    "default": "",
-    "description": "Set the lens to a particular focus position, expressed as a reciprocal distance(0 moves the lens to infinity), or 'default' for the hyperfocal distance"
+  "lens-position": {
+    "value": "",
+    "description": "Set the lens to a particular focus position, expressed as a reciprocal distance(0 moves the lens to infinity), or 'value' for the hyperfocal distance"
   },
-  {
-    "command": "metadata",
-    "default": "",
+  "metadata": {
+    "value": "",
     "description": "Save captured image metadata to a file or '-' for stdout"
   },
-  {
-    "command": "metadata-format",
-    "default": "json",
+  "metadata-format": {
+    "value": "json",
     "description": "Format to save the metadata in, either txt or json (requires --metadata)"
   },
-  {
-    "command": "quality",
-    "default": "93",
+  "quality": {
+    "value": "93",
     "description": "Set the JPEG quality parameter"
   },
-  {
-    "command": "exif",
-    "default": "",
+  "exif": {
+    "value": "",
     "description": "Add these extra EXIF tags to the output file"
   },
-  {
-    "command": "timelapse",
-    "default": "0",
+  "timelapse": {
+    "value": "0",
     "description": "Time interval (in ms) between timelapse captures"
   },
-  {
-    "command": "framestart",
-    "default": "0",
+  "framestart": {
+    "value": "0",
     "description": "Initial frame counter value for timelapse captures"
   },
-  {
-    "command": "datetime",
-    "default": "0",
+  "datetime": {
+    "value": "0",
     "description": "Use date format for output file names"
   },
-  {
-    "command": "timestamp",
-    "default": "0",
+  "timestamp": {
+    "value": "0",
     "description": "Use system timestamps for output file names"
   },
-  {
-    "command": "restart",
-    "default": "0",
+  "restart": {
+    "value": "0",
     "description": "Set JPEG restart interval"
   },
-  {
-    "command": "keypress",
-    "default": "0",
+  "keypress": {
+    "value": "0",
     "description": "Perform capture when ENTER pressed"
   },
-  {
-    "command": "signal",
-    "default": "0",
+  "signal": {
+    "value": "0",
     "description": "Perform capture when signal received"
   },
-  {
-    "command": "thumb",
-    "default": "320:240:70",
+  "thumb": {
+    "value": "320:240:70",
     "description": "Set thumbnail parameters as width:height:quality, or none"
   },
-  {
-    "command": "encoding",
-    "default": "jpg",
+  "encoding": {
+    "value": "jpg",
     "description": "Set the desired output encoding, either jpg, png, rgb, bmp or yuv420"
   },
-  {
-    "command": "raw",
-    "default": "0",
+  "raw": {
+    "value": "0",
     "description": "Also save raw file in DNG format"
   },
-  {
-    "command": "latest",
-    "default": "",
+  "latest": {
+    "value": "",
     "description": "Create a symbolic link with this name to most recent saved file"
   },
-  {
-    "command": "immediate",
-    "default": "0",
+  "immediate": {
+    "value": "0",
     "description": "Perform first capture immediately, with no preview phase"
   },
-  {
-    "command": "autofocus-on-capture",
-    "default": "0",
+  "autofocus-on-capture": {
+    "value": "0",
     "description": "Switch to AfModeAuto and trigger a scan just before capturing a still"
   }
-]
+}

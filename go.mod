@@ -2,10 +2,7 @@ module github.com/alexanderi96/libcamera-tray
 
 go 1.19
 
-require (
-	fyne.io/fyne/v2 v2.3.0
-	github.com/mitchellh/go-ps v1.0.0
-)
+require fyne.io/fyne/v2 v2.3.0
 
 require (
 	fyne.io/systray v1.10.1-0.20221115204952-d16a6177e6f1 // indirect
