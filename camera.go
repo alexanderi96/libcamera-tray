@@ -217,23 +217,28 @@ func buildCommand(app, baseCommand string) (out []string) {
                     currDate := time.Now()
 
                     path := fmt.Sprintf("%s/%s/%s", homeFolder, content.Value, currDate.Format(dateFormat))
+
+                    if (customParams["timelapse"] != Parameter{}) && customParams["timelapse"].Value != defaultParams["timelapse"].Value {
+                        path = fmt.Sprintf("%s/%s/%s", path, "timelapses", currDate.Format("15:04:05"))
+                    }
                     
                     if err := os.MkdirAll(path, os.ModePerm); err != nil {
                         log.Fatal(err)
                     }
 
-                    if customParams["datetime"] != defaultParams["datetime"] || customParams["timestamp"] != defaultParams["timestamp"] {
+                    if (customParams["timelapse"] != Parameter{}) && customParams["timelapse"].Value != defaultParams["timelapse"].Value ||
+                        (customParams["datetime"] != Parameter{} && customParams["datetime"].Value != defaultParams["datetime"].Value) ||
+                        (customParams["datetime"] != Parameter{} && customParams["datetime"].Value != defaultParams["timestamp"].Value) {
                         fullString = fmt.Sprintf("%s --%s %s", fullString, key, path)
                     } else {
                         fullString = fmt.Sprintf("%s --%s %s/pic%s.jpg", fullString, key, path, strconv.FormatInt(currDate.Unix(), 10))
                     }
 
-                case "timestamp":
-                case "immediate":
+                case "timestamp", "immediate", "timelapse", "timeout", "framestart":
                     if app != "libcamera-hello" {
                         fullString = fmt.Sprintf("%s --%s %s", fullString, key, content.Value)
                     }
-                    
+
                 default:
                     fullString = fmt.Sprintf("%s --%s %s", fullString, key, content.Value)
             }
