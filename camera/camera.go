@@ -24,10 +24,16 @@ var (
 
     dateFormat string = "2006-01-02"
     timeFormat string = "15:04:05"
+
 )
 
 func init() {
     Params.LoadParamsMap(defaultParamsJson)
+
+    // I set the custom preview size to fit the waveshare screen
+    preview := Params["preview"]
+    preview.Value = "0,0,564,423"
+    Params["preview"] = preview
 }
 
 func TogglePreview() (running bool) {

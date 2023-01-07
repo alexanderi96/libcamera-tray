@@ -20,7 +20,7 @@ func main() {
     // create new window
     w := app.NewWindow(
       app.Title(appName),
-      app.Size(unit.Dp(300), unit.Dp(200)),
+      app.Size(unit.Dp(228), unit.Dp(423)),
     )
     if err := ui.Draw(w); err != nil {
       log.Fatal(err)

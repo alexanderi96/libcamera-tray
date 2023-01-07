@@ -1,8 +1,12 @@
 package ui
 
 import (
+  "log"
+  //"io/ioutil"
+  "bytes"
+
   "github.com/alexanderi96/libcamera-tray/camera"
-  "github.com/alexanderi96/libcamera-tray/utils"
+  //"github.com/alexanderi96/libcamera-tray/utils"
 
 
   "gioui.org/app"
@@ -13,6 +17,7 @@ import (
     "gioui.org/unit"
   "gioui.org/widget"
   "gioui.org/widget/material"
+  "gioui.org/x/explorer"
 )
 
 type C = layout.Context
@@ -39,6 +44,8 @@ func Draw(w *app.Window) error {
    // th defines the material design style
    th := material.NewTheme(gofont.Collection())
 
+   expl := explorer.NewExplorer(w)
+
    // listen for events in the window.
   for {
 
@@ -63,7 +70,19 @@ func Draw(w *app.Window) error {
         }
 
         if loadConfigButton.Clicked() {
-            camera.Params.LoadParamsMap(utils.OpenFile("/home/stego/Documents/libcamera-tray/custom.lctp"))
+            go func() {
+              log.Println("Loading config file.")
+              file, err := expl.ChooseFile("lctp")
+              if err != nil {
+                log.Println(err)
+                return
+              }
+
+              buf := new(bytes.Buffer)
+              buf.ReadFrom(file)
+
+              camera.Params.LoadParamsMap(buf.Bytes())
+            }()            
         }
 
         layout.Flex{
@@ -110,9 +129,9 @@ func Draw(w *app.Window) error {
                         func(gtx C) D {
                             var text string
                             if !previewing {
-                              text = "Start preview"
-                            } else {
                               text = "Stop preview"
+                            } else {
+                              text = "Start preview"
                             }
                             btn := material.Button(th, &previewButton, text)
                             return btn.Layout(gtx)

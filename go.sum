@@ -6,6 +6,10 @@ gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 h1:AGDDxsJE1RpcXTAxPG2B4jrwVUJG
 gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2/go.mod h1:A8M0Cn5o+vY5LTMlnRoK3O5kG+rH0kWfJjeKd9QpBmQ=
 gioui.org/shader v1.0.6 h1:cvZmU+eODFR2545X+/8XucgZdTtEjR3QWW6W65b0q5Y=
 gioui.org/shader v1.0.6/go.mod h1:mWdiME581d/kV7/iEhLmUgUK5iZ09XR5XpduXzbePVM=
+gioui.org/x v0.0.0-20221219202300-e2d994f107e4 h1:dyZnD4qeTmgTwnpGl10n48BDKpqbghvfsbXgVLCu1JI=
+gioui.org/x v0.0.0-20221219202300-e2d994f107e4/go.mod h1:iDe/I0R+np8IX+aUR5oNlyCLQeVyMxjHZTeTHrMyBIo=
+git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0 h1:bGG/g4ypjrCJoSvFrP5hafr9PPB5aw8SjcOWWila7ZI=
+git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0/go.mod h1:+axXBRUTIDlCeE73IKeD/os7LoEnTKdkp8/gQOFjqyo=
 github.com/benoitkugler/pstokenizer v1.0.0/go.mod h1:l1G2Voirz0q/jj0TQfabNxVsa8HZXh/VMxFSRALWTiE=
 github.com/benoitkugler/textlayout v0.3.0 h1:2ehWXEkgb6RUokTjXh1LzdGwG4dRP6X3dqhYYDYhUVk=
 github.com/benoitkugler/textlayout v0.3.0/go.mod h1:o+1hFV+JSHBC9qNLIuwVoLedERU7sBPgEFcuSgfvi/w=
@@ -13,6 +17,8 @@ github.com/benoitkugler/textlayout-testdata v0.1.1 h1:AvFxBxpfrQd8v55qH59mZOJOQj
 github.com/benoitkugler/textlayout-testdata v0.1.1/go.mod h1:i/qZl09BbUOtd7Bu/W1CAubRwTWrEXWq6JwMkw8wYxo=
 github.com/go-text/typesetting v0.0.0-20221214153724-0399769901d5 h1:iOA0HmtpANn48hX2nlDNMu0VVaNza35HJG0WeetBVzQ=
 github.com/go-text/typesetting v0.0.0-20221214153724-0399769901d5/go.mod h1:/cmOXaoTiO+lbCwkTZBgCvevJpbFsZ5reXIpEJVh5MI=
+github.com/godbus/dbus/v5 v5.0.6 h1:mkgN1ofwASrYnJ5W6U/BxG15eXXXjirgZc7CLqkcaro=
+github.com/godbus/dbus/v5 v5.0.6/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 golang.org/x/exp v0.0.0-20221012211006-4de253d81b95 h1:sBdrWpxhGDdTAYNqbgBLAR+ULAPPhfgncLr1X0lyWtg=
 golang.org/x/exp v0.0.0-20221012211006-4de253d81b95/go.mod h1:cyybsKvd6eL0RnXn6p/Grxp8F5bW7iYuBgsNCOHpMYE=
 golang.org/x/exp/shiny v0.0.0-20220827204233-334a2380cb91 h1:ryT6Nf0R83ZgD8WnFFdfI8wCeyqgdXWN4+CkFVNPAT0=
