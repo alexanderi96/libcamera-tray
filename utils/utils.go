@@ -5,6 +5,7 @@ import (
 	"os"
     "log"
     "io/ioutil"
+    "encoding/json"
 )
 
 func IsItRunning(appName string) bool {
@@ -52,4 +53,16 @@ func OpenFile(filename string) []byte {
     }
 
     return data
+}
+
+func LoadJson[T any](fileName string, obj *T) {
+    configFile, err := ioutil.ReadFile(fileName)
+    if err != nil {
+        log.Fatal("Unable to read file: ", err)
+    }
+
+    err = json.Unmarshal(configFile, &obj)
+    if err != nil {
+        log.Fatal("Invalid file: ", err)
+    }
 }

@@ -1,23 +1,29 @@
 package ui
 
 import (
+  //"fmt"
   "log"
-  //"io/ioutil"
+  "os/exec"
   "bytes"
+  "strconv"
+  //"strings"
+  //"image/color"
 
   "github.com/alexanderi96/libcamera-tray/camera"
-  //"github.com/alexanderi96/libcamera-tray/utils"
-
+  "github.com/alexanderi96/libcamera-tray/utils"
+  "github.com/alexanderi96/libcamera-tray/config"
+  //"github.com/alexanderi96/libcamera-tray/types"
 
   "gioui.org/app"
   "gioui.org/font/gofont"
   "gioui.org/io/system"
   "gioui.org/layout"
   "gioui.org/op"
-    "gioui.org/unit"
+  "gioui.org/unit"
   "gioui.org/widget"
   "gioui.org/widget/material"
   "gioui.org/x/explorer"
+  //"gioui.org/text"
 )
 
 type C = layout.Context
@@ -28,23 +34,47 @@ type Point struct {
 }
 
 var (
+  windowPositioned bool = false
   previewing bool = false
   customConfigLoaded bool = false
+
+  // ops are the operations from the UI
+  ops op.Ops
+
+  // shotButton is a clickable widget
+  shotButton widget.Clickable
+  previewButton widget.Clickable
+  loadConfigButton widget.Clickable
+
+  previewCheckbox = &widget.Bool{
+    Value: config.Properties.Preview.Enabled,
+  }
+
+  infoTextField widget.Editor
+
+  optionsList = []layout.Widget{}
+
+  list = &widget.List{
+    List: layout.List{
+      Axis: layout.Vertical,
+    },
+  }
+
 )
 
 func Draw(w *app.Window) error {
-   // ops are the operations from the UI
-   var ops op.Ops
+  // th defines the material design style
+  th := material.NewTheme(gofont.Collection())
 
-   // shotButton is a clickable widget
-   var shotButton widget.Clickable
-   var previewButton widget.Clickable
-   var loadConfigButton widget.Clickable
+  expl := explorer.NewExplorer(w)
 
-   // th defines the material design style
-   th := material.NewTheme(gofont.Collection())
-
-   expl := explorer.NewExplorer(w)
+  managePreview := func() {
+    if previewCheckbox.Value {
+      camera.StartPreview()
+    } else {
+      camera.StopPreview()
+    }
+  }
 
    // listen for events in the window.
   for {
@@ -65,8 +95,8 @@ func Draw(w *app.Window) error {
             camera.Shot()
         }
 
-        if previewButton.Clicked() {
-            previewing = camera.TogglePreview()
+        if previewCheckbox.Changed() {
+          managePreview()
         }
 
         if loadConfigButton.Clicked() {
@@ -81,91 +111,52 @@ func Draw(w *app.Window) error {
               buf := new(bytes.Buffer)
               buf.ReadFrom(file)
 
-              camera.Params.LoadParamsMap(buf.Bytes())
+              camera.StopPreviewAndReload(func() {
+                log.Println("Settings loaded configs.")
+                camera.CustomParams.LoadParamsMap(buf.Bytes())
+              })
+
             }()            
         }
 
         layout.Flex{
             // Vertical alignment, from top to bottom
             Axis: layout.Vertical,
+            Spacing: layout.SpaceStart,
         }.Layout(gtx,
           layout.Rigid(
                 func(gtx C) D {
-                    // ONE: First define margins around the button using layout.Inset ...
-                    margins := layout.Inset{
-                      Top:    unit.Dp(10),
-                      Bottom: unit.Dp(10),
-                      Right:  unit.Dp(15),
-                      Left:   unit.Dp(15),
-                    }
-
-                    // TWO: ... then we lay out those margins ...
-                    return margins.Layout(gtx,
-
-                        // THREE: ... and finally within the margins, we define and lay out the button
-                        func(gtx C) D {
-                            btn := material.Button(th, &loadConfigButton, "Load Custom Config")
-                            return btn.Layout(gtx)
-                        },
-
-                    )
-
-                },
-            ),
-          layout.Rigid(
-                func(gtx C) D {
-                    // ONE: First define margins around the button using layout.Inset ...
-                    margins := layout.Inset{
-                      Top:    unit.Dp(10),
-                      Bottom: unit.Dp(10),
-                      Right:  unit.Dp(15),
-                      Left:   unit.Dp(15),
-                    }
-
-                    // TWO: ... then we lay out those margins ...
-                    return margins.Layout(gtx,
-
-                        // THREE: ... and finally within the margins, we define and lay out the button
-                        func(gtx C) D {
-                            var text string
-                            if !previewing {
-                              text = "Stop preview"
-                            } else {
-                              text = "Start preview"
-                            }
-                            btn := material.Button(th, &previewButton, text)
-                            return btn.Layout(gtx)
-                        },
-
-                    )
-
+                    return material.List(th, list).Layout(gtx, len(optionsList), func(gtx C, i int) D {
+                      return layout.UniformInset(unit.Dp(16)).Layout(gtx, optionsList[i])
+                    })
                 },
             ),
             layout.Rigid(
-                func(gtx C) D {
-                    // ONE: First define margins around the button using layout.Inset ...
-                    margins := layout.Inset{
-                    	Top:    unit.Dp(10),
-                    	Bottom: unit.Dp(10),
-                    	Right:  unit.Dp(15),
-                    	Left:   unit.Dp(15),
-                    }
-
-                    // TWO: ... then we lay out those margins ...
-                    return margins.Layout(gtx,
-
-                        // THREE: ... and finally within the margins, we define and lay out the button
-                        func(gtx C) D {
-                            btn := material.Button(th, &shotButton, "Shot")
-                            return btn.Layout(gtx)
-                        },
-
-                    )
-
-                },
+              material.CheckBox(th, previewCheckbox, "Preview").Layout,
             ),
+            layout.Rigid(
+              func(gtx C) D {
+                in := layout.UniformInset(unit.Dp(8))
+                return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+                  layout.Rigid(func(gtx C) D {
+                    return in.Layout(gtx, material.Button(th, &shotButton, "Take a Shot").Layout)
+                  }),
+                  layout.Rigid(func(gtx C) D {
+                    return in.Layout(gtx, material.Button(th, &loadConfigButton, "Load Conf").Layout)
+                  }),
+                )
+              },
+          ),
         )
         e.Frame(gtx.Ops)
+
+        //ugly workaroung in order to position the app at startup
+        if !windowPositioned {
+          moveWindow()
+          windowPositioned = true
+
+          managePreview()
+        }
       }
 
     }
@@ -173,4 +164,26 @@ func Draw(w *app.Window) error {
   return nil    
 }
 
+func moveWindow() {
+    cmd := exec.Command("xdotool",
+      "search",
+      "--class",
+      config.Properties.App.Title,
+      "windowmove",
+      strconv.Itoa(config.Properties.App.X),
+      strconv.Itoa(config.Properties.App.Y),
+    )
+    utils.Exec(cmd, true)
+}
 
+func generateOptionsList(gtx layout.Context, th *material.Theme) {
+  optionsList = []layout.Widget{}
+
+  for _, opt := range camera.CustomParams.GetKeysList() {
+    optionsList = append(optionsList, 
+      func(gtx C) D {
+      return material.Editor(th, new(widget.Editor), opt).Layout(gtx)
+      },
+    )
+  }
+}

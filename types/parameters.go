@@ -6,22 +6,15 @@ import (
 )
 
 type Parameter struct {
-    Command string `json:command`
-    DefaultValue string `json:defaultValue`
-    Value string `json:value`
-    Description string `json:description`
-}
-
-func (p Parameter) IsCustom() bool {
-    if p.Value != "" && p.Value != p.DefaultValue {
-        return true
-    }
-    return false
+    Command         string `json:command`
+    Value           string `json:value`
+    Description     string `json:description`
 }
 
 type ParamsMap map[string]Parameter
 
 func (p *ParamsMap) LoadParamsMap(bytes []byte) {
+
     err := json.Unmarshal(bytes, &p)
 
     if err != nil {

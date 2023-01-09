@@ -13,6 +13,7 @@ import (
 
     "github.com/alexanderi96/libcamera-tray/types"
     "github.com/alexanderi96/libcamera-tray/utils"
+    "github.com/alexanderi96/libcamera-tray/config"
 
 )
 
@@ -20,48 +21,67 @@ var (
     //go:embed defaultParams.lctp
     defaultParamsJson []byte
 
-    Params types.ParamsMap
-
-    dateFormat string = "2006-01-02"
-    timeFormat string = "15:04:05"
-
+    DefaultParams types.ParamsMap
+    CustomParams types.ParamsMap
 )
 
 func init() {
-    Params.LoadParamsMap(defaultParamsJson)
+    DefaultParams.LoadParamsMap(defaultParamsJson)
+    CustomParams = make(types.ParamsMap)
 
     // I set the custom preview size to fit the waveshare screen
-    preview := Params["preview"]
-    preview.Value = "0,0,564,423"
-    Params["preview"] = preview
+    preview := CustomParams["preview"]
+    preview.Value = fmt.Sprintf("%d,%d,%d,%d",
+        config.Properties.Preview.X,
+        config.Properties.Preview.Y,
+        config.Properties.Preview.Width,
+        config.Properties.Preview.Height,
+    )
+    CustomParams["preview"] = preview
 }
 
 func TogglePreview() (running bool) {
     running = utils.IsItRunning("libcamera-hello")
     if !running {
-        log.Print("Starting preview.")
-        prev := buildCommand("libcamera-hello")
-        log.Print(prev) 
-        utils.Exec(prev, false)
+        StartPreview()
     } else {
-        log.Print("Stopping preview.")
-        utils.Kill("libcamera-hello")
+        StopPreview()
     }
     return
 }
 
-func Shot() {
+func StartPreview() {
+    log.Println("Starting preview.")
+    prev := buildCommand("libcamera-hello")
+    log.Print(prev)
+    utils.Exec(prev, false)
+}
+
+func StopPreview() {
+    log.Println("Stopping preview.")
+    utils.Kill("libcamera-hello")
+}
+
+func StopPreviewAndReload(middle func()) {
     running := false
     if running = utils.IsItRunning("libcamera-hello"); running {
         TogglePreview()
     }
-    log.Print("Taking a shot.")
-    shot := buildCommand("libcamera-still")
-    log.Print(shot)
-    utils.Exec(shot, true)
+    if middle != nil {
+        middle()
+    }
     if running {
         TogglePreview()
     }
+}
+
+func Shot() {
+    StopPreviewAndReload(func() {
+        log.Println("Taking a shot.")
+        shot := buildCommand("libcamera-still")
+        log.Print(shot)
+        utils.Exec(shot, true)
+    })
 }
 
 func buildCommand(app string) *exec.Cmd {
@@ -73,14 +93,11 @@ func buildCommand(app string) *exec.Cmd {
         fullString = fmt.Sprintf("%s", "--timeout 0")
     }
 
-    log.Println(fullString)
-    
-    for key, option := range Params {
-        if option.IsCustom() {
-            
+    for key, option := range CustomParams {
+        if option.Value != "" && option.Value != DefaultParams[key].Value{
             switch key {
 
-                case "timestamp", "immediate", "timelapse", "timeout", "framestart", "output":
+                case "timestamp", "immediate", "timelapse", "timeout", "framestart", "output", "shutter":
                     if app != "libcamera-hello" {
                         fullString = fmt.Sprintf("%s --%s %s", fullString, key, option.Value)
                     }
@@ -97,11 +114,10 @@ func buildCommand(app string) *exec.Cmd {
 func getOutputPath() string {
 
     currDate := time.Now()
-    
     folder := ""
 
-    if Params["output"].IsCustom() {
-        folder = Params["output"].Value
+    if CustomParams["output"].Value != "" && CustomParams["output"].Value != DefaultParams["output"].Value {
+        folder = CustomParams["output"].Value
     } else {
         homeFolder, err := os.UserHomeDir()
         if err != nil {
@@ -110,19 +126,19 @@ func getOutputPath() string {
         folder = fmt.Sprintf("%s/%s", homeFolder, "Pictures/libcamera-tray")
     }
 
-    path := fmt.Sprintf("%s/%s", folder, currDate.Format(dateFormat))
+    path := fmt.Sprintf("%s/%s", folder, currDate.Format(config.Properties.DateFormat))
 
-    if Params["timelapse"].IsCustom() {
-        path = fmt.Sprintf("%s/%s/%s", path, "timelapses", currDate.Format(timeFormat))
+    if (CustomParams["timelapse"].Value != "" && CustomParams["timelapse"].Value != DefaultParams["timelapse"].Value) {
+        path = fmt.Sprintf("%s/%s/%s", path, "timelapses", currDate.Format(config.Properties.TimeFormat))
     }
     
     if err := os.MkdirAll(path, os.ModePerm); err != nil {
         log.Fatal(err)
     }
 
-    if Params["timelapse"].IsCustom() ||
-        Params["datetime"].IsCustom() ||
-        Params["timestamp"].IsCustom() {
+    if (CustomParams["timelapse"].Value != "" && CustomParams["timelapse"].Value != DefaultParams["timelapse"].Value) ||
+    (CustomParams["datetime"].Value != "" && CustomParams["datetime"].Value != DefaultParams["datetime"].Value) ||
+    (CustomParams["timestamp"].Value != "" && CustomParams["timestamp"].Value != DefaultParams["timestamp"].Value) {
         return fmt.Sprintf("--output %s", path)
     } else {
         return fmt.Sprintf("--output %s/pic%s.jpg", path, strconv.FormatInt(currDate.Unix(), 10))
