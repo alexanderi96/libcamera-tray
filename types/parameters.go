@@ -1,30 +1,30 @@
 package types
 
 import (
-    "encoding/json"
-    "log"
+	"encoding/json"
+	"log"
 )
 
 type Parameter struct {
-    Command         string `json:command`
-    Value           string `json:value`
-    Description     string `json:description`
+	Command     string `json:command`
+	Value       string `json:value`
+	Description string `json:description`
 }
 
 type ParamsMap map[string]Parameter
 
 func (p *ParamsMap) LoadParamsMap(bytes []byte) {
 
-    err := json.Unmarshal(bytes, &p)
+	err := json.Unmarshal(bytes, &p)
 
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (p *ParamsMap) GetKeysList() (list []string) {
-    for key, _ := range *p {
-        list = append(list, key)
-    }
-    return
+	for key, _ := range *p {
+		list = append(list, key)
+	}
+	return
 }
