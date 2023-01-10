@@ -1,242 +1,302 @@
 {
   "width": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set the output image width (0 = use value value)"
   },
   "height": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set the output image height (0 = use value value)"
   },
   "timeout": {
     "value": "5000",
+    "stillSpecific": true,
     "description": "Time (in ms) for which program runs"
   },
   "output": {
     "value": "",
+    "stillSpecific": true,
     "description": "Set the output file name"
   },
   "post-process-file": {
     "value": "",
+    "stillSpecific": false,
     "description": "Set the file name for configuring the post-processing"
   },
   "rawfull": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Force use of full resolution raw frames"
   },
   "nopreview": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Do not show a preview window"
   },
   "preview": {
     "value": "0,0,0,0",
+    "stillSpecific": false,
     "description": "Set the preview window dimensions, given as x,y,width,height e.g. 0,0,640,480"
   },
   "fullscreen": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Use a fullscreen preview window"
   },
   "hflip": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Request a horizontal flip transform"
   },
   "vflip": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Request a vertical flip transform"
   },
   "rotation": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Request an image rotation, 0 or 180"
   },
   "roi": {
     "value": "0,0,0,0",
+    "stillSpecific": false,
     "description": "Set region of interest (digital zoom) e.g. 0.25,0.25,0.5,0.5"
   },
   "shutter": {
     "value": "0",
+    "stillSpecific": true,
     "description": "Set a fixed shutter speed in microseconds"
   },
   "analoggain": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set a fixed gain value (synonym for 'gain' option)"
   },
   "gain": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set a fixed gain value"
   },
   "metering": {
     "value": "centre",
+    "stillSpecific": false,
     "description": "Set the metering mode (centre, spot, average, custom)"
   },
   "exposure": {
     "value": "normal",
+    "stillSpecific": false,
     "description": "Set the exposure mode (normal, sport)"
   },
   "ev": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set the EV exposure compensation, where 0 = no change"
   },
   "awb": {
     "value": "auto",
+    "stillSpecific": false,
     "description": "Set the AWB mode (auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy, custom)"
   },
   "awbgains": {
     "value": "0, 0",
+    "stillSpecific": false,
     "description": "Set explict red and blue gains (disable the automatic AWB algorithm)"
   },
   "flush": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Flush output data as soon as possible"
   },
   "wrap": {
     "value": "0",
+    "stillSpecific": false,
     "description": "When writing multiple output files, reset the counter when it reaches this number"
   },
   "brightness": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Adjust the brightness of the output images, in the range -1.0 to 1.0"
   },
   "contrast": {
     "value": "1",
+    "stillSpecific": false,
     "description": "Adjust the contrast of the output image, where 1.0 = normal contrast"
   },
   "saturation": {
     "value": "1",
+    "stillSpecific": false,
     "description": "Adjust the colour saturation of the output, where 1.0 = normal and 0.0 = greyscale"
   },
   "sharpness": {
     "value": "1",
+    "stillSpecific": false,
     "description": "Adjust the sharpness of the output image, where 1.0 = normal sharpening"
   },
   "framerate": {
     "value": "-1",
+    "stillSpecific": false,
     "description": "Set the fixed framerate for preview and video modes"
   },
   "denoise": {
     "value": "auto",
+    "stillSpecific": false,
     "description": "Sets the Denoise operating mode: auto, off, cdn_off, cdn_fast, cdn_hq"
   },
   "viewfinder-width": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Width of viewfinder frames from the camera (distinct from the preview window size)"
   },
   "viewfinder-height": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Height of viewfinder frames from the camera (distinct from the preview window size)"
   },
   "lores-width": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Width of low resolution frames (use 0 to omit low resolution stream"
   },
   "lores-height": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Height of low resolution frames (use 0 to omit low resolution stream"
   },
   "mode": {
     "value": "",
+    "stillSpecific": false,
     "description": "Camera mode as W:H:bit-depth:packing, where packing is P (packed) or U (unpacked)"
   },
   "viewfinder-mode": {
     "value": "",
+    "stillSpecific": false,
     "description": "Camera mode for preview as W:H:bit-depth:packing, where packing is P (packed) or U (unpacked)"
   },
   "buffer-count": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Number of in-flight requests (and buffers) configured for video, raw, and still."
   },
   "viewfinder-buffer-count": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Number of in-flight requests (and buffers) configured for preview window."
   },
   "autofocus-mode": {
     "value": "unset",
+    "stillSpecific": false,
     "description": "Control to set the mode of the AF (autofocus) algorithm.(manual, auto, continuous)"
   },
   "autofocus-range": {
     "value": "unset",
+    "stillSpecific": false,
     "description": "Set the range of focus distances that is scanned.(normal, macro, full)"
   },
   "autofocus-speed": {
     "value": "unset",
+    "stillSpecific": false,
     "description": "Control that determines whether the AF algorithm is to move the lens as quickly as possible or more steadily.(normal, fast)"
   },
   "autofocus-window": {
     "value": "0,0,0,0",
+    "stillSpecific": false,
     "description": "Sets AfMetering to  AfMeteringWindows an set region used, e.g. 0.25,0.25,0.5,0.5"
   },
   "lens-position": {
     "value": "",
+    "stillSpecific": false,
     "description": "Set the lens to a particular focus position, expressed as a reciprocal distance(0 moves the lens to infinity), or 'value' for the hyperfocal distance"
   },
   "metadata": {
     "value": "",
+    "stillSpecific": false,
     "description": "Save captured image metadata to a file or '-' for stdout"
   },
   "metadata-format": {
     "value": "json",
+    "stillSpecific": false,
     "description": "Format to save the metadata in, either txt or json (requires --metadata)"
   },
   "quality": {
     "value": "93",
+    "stillSpecific": false,
     "description": "Set the JPEG quality parameter"
   },
   "exif": {
     "value": "",
+    "stillSpecific": false,
     "description": "Add these extra EXIF tags to the output file"
   },
   "timelapse": {
     "value": "0",
+    "stillSpecific": true,
     "description": "Time interval (in ms) between timelapse captures"
   },
   "framestart": {
     "value": "0",
+    "stillSpecific": true,
     "description": "Initial frame counter value for timelapse captures"
   },
   "datetime": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Use date format for output file names"
   },
   "timestamp": {
     "value": "0",
+    "stillSpecific": true,
     "description": "Use system timestamps for output file names"
   },
   "restart": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Set JPEG restart interval"
   },
   "keypress": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Perform capture when ENTER pressed"
   },
   "signal": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Perform capture when signal received"
   },
   "thumb": {
     "value": "320:240:70",
+    "stillSpecific": false,
     "description": "Set thumbnail parameters as width:height:quality, or none"
   },
   "encoding": {
     "value": "jpg",
+    "stillSpecific": false,
     "description": "Set the desired output encoding, either jpg, png, rgb, bmp or yuv420"
   },
   "raw": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Also save raw file in DNG format"
   },
   "latest": {
     "value": "",
+    "stillSpecific": false,
     "description": "Create a symbolic link with this name to most recent saved file"
   },
   "immediate": {
     "value": "0",
+    "stillSpecific": true,
     "description": "Perform first capture immediately, with no preview phase"
   },
   "autofocus-on-capture": {
     "value": "0",
+    "stillSpecific": false,
     "description": "Switch to AfModeAuto and trigger a scan just before capturing a still"
   },
   "tuning-file": {
     "value": "",
+    "stillSpecific": false,
     "description": "Name of camera tuning file to use, omit this option for libcamera default"
   }
 }

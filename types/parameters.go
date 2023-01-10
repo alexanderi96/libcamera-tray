@@ -6,9 +6,15 @@ import (
 )
 
 type Parameter struct {
-	Command     string `json:command`
-	Value       string `json:value`
-	Description string `json:description`
+	Command     	string 	`json:command`
+	Value       	string 	`json:value`
+	Enabled			bool	`json:enabled`
+	StillSpecific	bool	`json:stillSpecific`
+	Description 	string 	`json:description`
+}
+
+func (p *Parameter) Toggle() {
+	p.Enabled = !p.Enabled
 }
 
 type ParamsMap map[string]Parameter

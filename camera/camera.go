@@ -36,6 +36,7 @@ func init() {
 		config.Properties.Preview.Width,
 		config.Properties.Preview.Height,
 	)
+	preview.Enabled = true
 	Params["preview"] = preview
 
 }
@@ -95,19 +96,16 @@ func buildCommand(app string) *exec.Cmd {
 
 	for key, option := range Params {
 
-		if key != "output" && option.Value != "" && option.Value != DefaultParams[key].Value {
+		if key != "output" && option.Enabled && option.Value != "" && option.Value != DefaultParams[key].Value {
 			switch key {
-
-			case "timestamp", "immediate", "timelapse", "timeout", "framestart", "output", "shutter":
-				if app != "libcamera-hello" {
-					fullString = fmt.Sprintf("%s --%s %s", fullString, key, option.Value)
-				}
-
-			default:
-				fullString = fmt.Sprintf("%s --%s %s", fullString, key, option.Value)
-			}
-
-		}
+				case "timestamp", "immediate", "timelapse", "timeout", "framestart", "output", "shutter":
+               		if app != "libcamera-hello" {
+                       fullString = fmt.Sprintf("%s --%s %s", fullString, key, option.Value)
+                    }
+                default :
+                        fullString = fmt.Sprintf("%s --%s %s", fullString, key, option.Value)
+           	}
+        }
 	}
 	return exec.Command(app, strings.Split(fullString, " ")...)
 }
@@ -122,7 +120,7 @@ func getOutputPath() string {
 		log.Fatal(err)
 	}
 
-	if Params["output"].Value != "" && Params["output"].Value != DefaultParams["output"].Value {
+	if Params["output"].Enabled && Params["output"].Value != "" && Params["output"].Value != DefaultParams["output"].Value {
 		folder = fmt.Sprintf("%s/%s", homeFolder, Params["output"].Value)
 	} else {
 		
@@ -131,7 +129,7 @@ func getOutputPath() string {
 
 	path := fmt.Sprintf("%s/%s", folder, currDate.Format(config.Properties.DateFormat))
 
-	if Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value {
+	if Params["timelapse"].Enabled && Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value {
 		path = fmt.Sprintf("%s/%s/%s", path, "timelapses", currDate.Format(config.Properties.TimeFormat))
 	}
 
@@ -139,9 +137,9 @@ func getOutputPath() string {
 		log.Fatal(err)
 	}
 
-	if (Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value) ||
-		(Params["datetime"].Value != "" && Params["datetime"].Value != DefaultParams["datetime"].Value) ||
-		(Params["timestamp"].Value != "" && Params["timestamp"].Value != DefaultParams["timestamp"].Value) {
+	if (Params["timelapse"].Enabled && Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value) ||
+		(Params["datetime"].Enabled && Params["datetime"].Value != "" && Params["datetime"].Value != DefaultParams["datetime"].Value) ||
+		(Params["timestamp"].Enabled && Params["timestamp"].Value != "" && Params["timestamp"].Value != DefaultParams["timestamp"].Value) {
 		return fmt.Sprintf("--output %s", path)
 	} else {
 		return fmt.Sprintf("--output %s/pic%s.jpg", path, strconv.FormatInt(currDate.Unix(), 10))
