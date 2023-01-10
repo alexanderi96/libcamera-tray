@@ -21,22 +21,23 @@ var (
 	defaultParamsJson []byte
 
 	DefaultParams types.ParamsMap
-	CustomParams  types.ParamsMap
+	Params  types.ParamsMap
 )
 
 func init() {
 	DefaultParams.LoadParamsMap(defaultParamsJson)
-	CustomParams = make(types.ParamsMap)
+	Params.LoadParamsMap(defaultParamsJson)
 
 	// I set the custom preview size to fit the waveshare screen
-	preview := CustomParams["preview"]
+	preview := Params["preview"]
 	preview.Value = fmt.Sprintf("%d,%d,%d,%d",
 		config.Properties.Preview.X,
 		config.Properties.Preview.Y,
 		config.Properties.Preview.Width,
 		config.Properties.Preview.Height,
 	)
-	CustomParams["preview"] = preview
+	Params["preview"] = preview
+
 }
 
 func TogglePreview() (running bool) {
@@ -92,8 +93,9 @@ func buildCommand(app string) *exec.Cmd {
 		fullString = fmt.Sprintf("%s", "--timeout 0")
 	}
 
-	for key, option := range CustomParams {
-		if option.Value != "" && option.Value != DefaultParams[key].Value {
+	for key, option := range Params {
+
+		if key != "output" && option.Value != "" && option.Value != DefaultParams[key].Value {
 			switch key {
 
 			case "timestamp", "immediate", "timelapse", "timeout", "framestart", "output", "shutter":
@@ -115,19 +117,21 @@ func getOutputPath() string {
 	currDate := time.Now()
 	folder := ""
 
-	if CustomParams["output"].Value != "" && CustomParams["output"].Value != DefaultParams["output"].Value {
-		folder = CustomParams["output"].Value
+	homeFolder, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if Params["output"].Value != "" && Params["output"].Value != DefaultParams["output"].Value {
+		folder = fmt.Sprintf("%s/%s", homeFolder, Params["output"].Value)
 	} else {
-		homeFolder, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal(err)
-		}
+		
 		folder = fmt.Sprintf("%s/%s", homeFolder, "Pictures/libcamera-tray")
 	}
 
 	path := fmt.Sprintf("%s/%s", folder, currDate.Format(config.Properties.DateFormat))
 
-	if CustomParams["timelapse"].Value != "" && CustomParams["timelapse"].Value != DefaultParams["timelapse"].Value {
+	if Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value {
 		path = fmt.Sprintf("%s/%s/%s", path, "timelapses", currDate.Format(config.Properties.TimeFormat))
 	}
 
@@ -135,9 +139,9 @@ func getOutputPath() string {
 		log.Fatal(err)
 	}
 
-	if (CustomParams["timelapse"].Value != "" && CustomParams["timelapse"].Value != DefaultParams["timelapse"].Value) ||
-		(CustomParams["datetime"].Value != "" && CustomParams["datetime"].Value != DefaultParams["datetime"].Value) ||
-		(CustomParams["timestamp"].Value != "" && CustomParams["timestamp"].Value != DefaultParams["timestamp"].Value) {
+	if (Params["timelapse"].Value != "" && Params["timelapse"].Value != DefaultParams["timelapse"].Value) ||
+		(Params["datetime"].Value != "" && Params["datetime"].Value != DefaultParams["datetime"].Value) ||
+		(Params["timestamp"].Value != "" && Params["timestamp"].Value != DefaultParams["timestamp"].Value) {
 		return fmt.Sprintf("--output %s", path)
 	} else {
 		return fmt.Sprintf("--output %s/pic%s.jpg", path, strconv.FormatInt(currDate.Unix(), 10))

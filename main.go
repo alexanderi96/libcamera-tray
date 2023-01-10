@@ -6,6 +6,8 @@ import (
 
 	"github.com/alexanderi96/libcamera-tray/config"
 	"github.com/alexanderi96/libcamera-tray/ui"
+	"github.com/alexanderi96/libcamera-tray/camera"
+	"github.com/alexanderi96/libcamera-tray/utils"
 
 	"gioui.org/app"
 	"gioui.org/unit"
@@ -25,6 +27,9 @@ func main() {
 			log.Fatal(err)
 		}
 
+		if utils.IsItRunning("libcamera-hello") {
+			camera.StopPreview()
+		}
 		log.Println("Exiting.")
 		os.Exit(0)
 	}()

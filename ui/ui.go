@@ -24,6 +24,8 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/explorer"
 	//"gioui.org/text"
+
+	//"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type C = layout.Context
@@ -52,13 +54,6 @@ var (
 
 	infoTextField widget.Editor
 
-	optionsList = []layout.Widget{}
-
-	list = &widget.List{
-		List: layout.List{
-			Axis: layout.Vertical,
-		},
-	}
 )
 
 func Draw(w *app.Window) error {
@@ -112,7 +107,8 @@ func Draw(w *app.Window) error {
 
 						camera.StopPreviewAndReload(func() {
 							log.Println("Settings loaded configs.")
-							camera.CustomParams.LoadParamsMap(buf.Bytes())
+							camera.Params.LoadParamsMap(buf.Bytes())
+							settings(&gtx, th)
 						})
 
 					}()
@@ -125,8 +121,9 @@ func Draw(w *app.Window) error {
 				}.Layout(gtx,
 					layout.Rigid(
 						func(gtx C) D {
-							return material.List(th, list).Layout(gtx, len(optionsList), func(gtx C, i int) D {
-								return layout.UniformInset(unit.Dp(16)).Layout(gtx, optionsList[i])
+							gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(330))
+							return material.List(th, list).Layout(gtx, len(OptionsList), func(gtx C, i int) D {
+								return layout.UniformInset(unit.Dp(0)).Layout(gtx, OptionsList[i])
 							})
 						},
 					),
@@ -151,6 +148,9 @@ func Draw(w *app.Window) error {
 
 				//ugly workaroung in order to position the app at startup
 				if !windowPositioned {
+					settings(&gtx, th)
+          			w.Invalidate()
+          			
 					moveWindow()
 					windowPositioned = true
 
@@ -173,16 +173,4 @@ func moveWindow() {
 		strconv.Itoa(config.Properties.App.Y),
 	)
 	utils.Exec(cmd, true)
-}
-
-func generateOptionsList(gtx layout.Context, th *material.Theme) {
-	optionsList = []layout.Widget{}
-
-	for _, opt := range camera.CustomParams.GetKeysList() {
-		optionsList = append(optionsList,
-			func(gtx C) D {
-				return material.Editor(th, new(widget.Editor), opt).Layout(gtx)
-			},
-		)
-	}
 }
