@@ -22,4 +22,5 @@ type Configuration struct {
 	Preview    Preview `json:preview`
 	DateFormat string  `json:dateFormat`
 	TimeFormat string  `json:timeFormat`
+	ConfigPath string 	`json:configPath`
 }

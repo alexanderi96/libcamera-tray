@@ -15,5 +15,6 @@
         "y": 36
     },
     "dateFormat": "2006-01-02",
-    "timeFormat": "15:04:05"
+    "timeFormat": "15:04:05",
+    "configPath": "Documents/libcamera-tray/custom.lctp"
 }

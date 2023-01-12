@@ -22,11 +22,22 @@ var (
 
 	DefaultParams types.ParamsMap
 	Params  types.ParamsMap
+	homeFolder string
 )
 
 func init() {
+	homeFolder, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	DefaultParams.LoadParamsMap(defaultParamsJson)
-	Params.LoadParamsMap(defaultParamsJson)
+
+	if config.Properties.ConfigPath != "" {
+		Params.LoadParamsMap(utils.OpenFile(fmt.Sprintf("%s/%s", homeFolder, config.Properties.ConfigPath)))
+	} else {
+		Params.LoadParamsMap(defaultParamsJson)
+	}
 
 	// I set the custom preview size to fit the waveshare screen
 	preview := Params["preview"]
@@ -114,11 +125,6 @@ func getOutputPath() string {
 
 	currDate := time.Now()
 	folder := ""
-
-	homeFolder, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	if Params["output"].Enabled && Params["output"].Value != "" && Params["output"].Value != DefaultParams["output"].Value {
 		folder = fmt.Sprintf("%s/%s", homeFolder, Params["output"].Value)
