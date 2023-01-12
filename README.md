@@ -8,7 +8,8 @@ A libcamera-apps wrapper written in go that provides a convenient ~~system tray 
 - [x] Take a shot
 - [X] See the active libcamera-apps parameters
 - [x] Set custom parameters from a json file
-- [] Editing the parameters dyrectly from the ui
+- [ ] Editing the parameters dyrectly from the ui and beying able to save on a new or existing config file
+- [ ] Focus ui mode in order to focus more precisely during the preview phase
 
 ## HW setup
 
@@ -43,9 +44,19 @@ A libcamera-apps wrapper written in go that provides a convenient ~~system tray 
 
 ## Why?
 
-Because I wanted to learn how to program in GO more complex programs and also how to write GUI programs with it. Also I had a Pi4 with a Camera HQ laying around taking dust, so why not.
+Because I wanted to learn how to build more complex programs in go and also how to write gui programs with it. Also I had a Pi4 with a Camera HQ laying around taking dust, so why not.
 
 ## Limitations
 
+### SW
+
 - Compared to calssic python (or c++) camera implementations, golang has not a native way to interface itself to the camera stack, Therefore the various libcamera-apps must be runned using the exec command.
-- Gio is a great golang gui library, but still fairly new. Because of that for example after the window has been created, it must be moved to the correct position using `xdotool` 
+- Gio is a great golang gui library, but still fairly new. Because of that for example after the window has been created, it must be moved to the correct position using `xdotool`
+- The ui is strictly dependent on the screen size, therefore it must manually be adapted for different screens
+
+### HW
+
+- The screen is not small but the ui is all about compromises between beying able to see the preview and being able to actually click the buttons
+- Focus and focal aperture must be manually corrected from the lens and this makes it pretty difficult to make it precisely on the small res preview
+- At the moment a power bank must be carryed around in order to make the camera work
+- Having to mount and unmount the lenses each time makes it difficult to use it ad a point and shot camera
