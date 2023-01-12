@@ -1,0 +1,20 @@
+{
+    "app": {
+        "title": "libcamera-tray",
+        "description": "libcamera-apps wapprer wreitten in go",
+        "width": 228,
+        "height": 423,
+        "x": 568,
+        "y": 36
+    },
+    "preview": {
+        "enabled": true,
+        "width": 564,
+        "height": 423,
+        "x": 0,
+        "y": 36
+    },
+    "dateFormat": "2006-01-02",
+    "timeFormat": "15:04:05",
+    "configPath": "Documents/libcamera-tray/custom.lctp"
+}
