@@ -11,6 +11,26 @@ A libcamera-apps wrapper written in go that provides a convenient ~~system tray 
 - [ ] Editing the parameters dyrectly from the ui and beying able to save on a new or existing config file
 - [ ] Focus ui mode in order to focus more precisely during the preview phase
 
+## System Dependencies
+
+Ensure the following development libraries are installed:
+
+- `libxkbcommon-dev`
+- `libwayland-dev`
+- `libxkbcommon-x11-dev`
+- `libx11-xcb-dev`
+- `libxcursor-dev`
+- `libxfixes-dev`
+- `libvulkan-dev`
+
+## Install All Dependencies
+
+Run this command on Debian-based systems:
+
+```bash
+sudo apt install libxkbcommon-dev libwayland-dev libxkbcommon-x11-dev libx11-xcb-dev libxcursor-dev libxfixes-dev libvulkan-dev
+```
+
 ## HW setup
 
 ### Actual setup

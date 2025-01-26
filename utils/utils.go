@@ -16,7 +16,9 @@ func IsItRunning(appName string) bool {
 }
 
 func GetPid(appName string) string {
-	out, err := exec.Command("pidof", appName).Output()
+	cmd := exec.Command("pidof", appName)
+	cmd.Env = append(os.Environ(), "DISPLAY=:0")
+	out, err := cmd.Output()
 	if err != nil {
 		return "0"
 	}
@@ -24,20 +26,46 @@ func GetPid(appName string) string {
 	return pid[:len(pid)-1]
 }
 
+func GetWindowID(className string) (string, error) {
+	cmd := exec.Command("xdotool", "search", "--class", className)
+	cmd.Env = append(os.Environ(), "DISPLAY=:0")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(out[:len(out)-1]), nil
+}
+
 func Exec(cmd *exec.Cmd, wait bool) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	
+	// Ensure DISPLAY is set for all commands
+	if cmd.Env == nil {
+		cmd.Env = append(os.Environ(), "DISPLAY=:0")
+	} else if !hasDisplay(cmd.Env) {
+		cmd.Env = append(cmd.Env, "DISPLAY=:0")
+	}
 
 	if wait {
 		cmd.Run()
 	} else {
 		cmd.Start()
 	}
+}
 
+func hasDisplay(env []string) bool {
+	for _, e := range env {
+		if len(e) >= 8 && e[:8] == "DISPLAY=" {
+			return true
+		}
+	}
+	return false
 }
 
 func Kill(appName string) {
 	killAll := exec.Command("killall", appName)
+	killAll.Env = append(os.Environ(), "DISPLAY=:0")
 	Exec(killAll, true)
 }
 

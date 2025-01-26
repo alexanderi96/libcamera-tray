@@ -1,18 +1,16 @@
 package ui
 
 import (
-	//"fmt"
 	"bytes"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
-	//"strings"
-	//"image/color"
+	"time"
 
 	"github.com/alexanderi96/libcamera-tray/camera"
 	"github.com/alexanderi96/libcamera-tray/config"
 	"github.com/alexanderi96/libcamera-tray/utils"
-	//"github.com/alexanderi96/libcamera-tray/types"
 
 	"gioui.org/app"
 	"gioui.org/font/gofont"
@@ -23,9 +21,6 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/explorer"
-	//"gioui.org/text"
-
-	//"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type C = layout.Context
@@ -39,44 +34,78 @@ var (
 	windowPositioned   bool = false
 	previewing         bool = false
 	customConfigLoaded bool = false
+	previewWindowID    string = ""
+	showSettings      bool = false
+	showGallery       bool = false
+
+	gallery = NewGallery()
 
 	// ops are the operations from the UI
 	ops op.Ops
 
-	// shotButton is a clickable widget
+	// Buttons
 	shotButton       widget.Clickable
-	previewButton    widget.Clickable
+	settingsButton   widget.Clickable
+	galleryButton    widget.Clickable
 	loadConfigButton widget.Clickable
-
-	previewCheckbox = &widget.Bool{
-		Value: config.Properties.Preview.Enabled,
-	}
+	backButton       widget.Clickable
 
 	infoTextField widget.Editor
-
 )
 
-func Draw(w *app.Window) error {
-	// th defines the material design style
-	th := material.NewTheme(gofont.Collection())
+var PreviewCheckbox = &widget.Bool{
+	Value: false, // Disable preview by default
+}
 
+func getPreviewWindowID() (string, error) {
+	time.Sleep(1000 * time.Millisecond)
+	cmd := exec.Command("xdotool", "search", "--name", "Camera")
+	cmd.Env = append(os.Environ(), "DISPLAY=:0")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(output[:len(output)-1]), nil
+}
+
+func positionPreviewWindow() error {
+	previewID, err := getPreviewWindowID()
+	if err != nil {
+		return err
+	}
+
+	mainX := config.Properties.App.X
+	mainY := config.Properties.App.Y
+	previewX := mainX + config.Properties.App.Width
+	previewY := mainY
+
+	cmd := exec.Command("xdotool", "windowmove", previewID,
+		strconv.Itoa(previewX),
+		strconv.Itoa(previewY))
+	cmd.Env = append(os.Environ(), "DISPLAY=:0")
+	return cmd.Run()
+}
+
+func Draw(w *app.Window) error {
+	th := material.NewTheme(gofont.Collection())
 	expl := explorer.NewExplorer(w)
 
 	managePreview := func() {
-		if previewCheckbox.Value {
+		if PreviewCheckbox.Value {
 			camera.StartPreview()
+			go func() {
+				if err := positionPreviewWindow(); err != nil {
+					log.Printf("Error positioning preview window: %v", err)
+				}
+			}()
 		} else {
 			camera.StopPreview()
+			previewWindowID = ""
 		}
 	}
 
-	// listen for events in the window.
 	for {
-
-		// detect what type of event
 		select {
-
-		// this is sent when the application should re-render.
 		case e := <-w.Events():
 			switch e := e.(type) {
 			case system.DestroyEvent:
@@ -84,12 +113,20 @@ func Draw(w *app.Window) error {
 
 			case system.FrameEvent:
 				gtx := layout.NewContext(&ops, e)
-				// Let's try out the flexbox layout concept:
+				
 				if shotButton.Clicked() {
 					camera.Shot()
 				}
 
-				if previewCheckbox.Changed() {
+				if settingsButton.Clicked() {
+					showSettings = true
+				}
+
+				if backButton.Clicked() {
+					showSettings = false
+				}
+
+				if PreviewCheckbox.Changed() {
 					managePreview()
 				}
 
@@ -108,65 +145,148 @@ func Draw(w *app.Window) error {
 						camera.StopPreviewAndReload(func() {
 							log.Println("Settings loaded configs.")
 							camera.Params.LoadParamsMap(buf.Bytes())
-							settings(&gtx, th)
+							settings(gtx, th)
 						})
-
 					}()
 				}
 
-				layout.Flex{
-					// Vertical alignment, from top to bottom
-					Axis:    layout.Vertical,
-					Spacing: layout.SpaceStart,
-				}.Layout(gtx,
-					layout.Rigid(
-						func(gtx C) D {
-							gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(330))
-							return material.List(th, list).Layout(gtx, len(OptionsList), func(gtx C, i int) D {
-								return layout.UniformInset(unit.Dp(0)).Layout(gtx, OptionsList[i])
-							})
-						},
-					),
-					layout.Rigid(
-						material.CheckBox(th, previewCheckbox, "Preview").Layout,
-					),
-					layout.Rigid(
-						func(gtx C) D {
-							in := layout.UniformInset(unit.Dp(8))
-							return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-								layout.Rigid(func(gtx C) D {
-									return in.Layout(gtx, material.Button(th, &shotButton, "Take a Shot").Layout)
-								}),
-								layout.Rigid(func(gtx C) D {
-									return in.Layout(gtx, material.Button(th, &loadConfigButton, "Load Conf").Layout)
-								}),
-							)
-						},
-					),
-				)
+				if galleryButton.Clicked() {
+					showGallery = true
+					if err := gallery.LoadImages(); err != nil {
+						log.Printf("Error loading gallery images: %v", err)
+					}
+				}
+
+				if gallery.backBtn.Clicked() {
+					showGallery = false
+				}
+
+				if gallery.gridBtn.Clicked() {
+					gallery.gridMode = !gallery.gridMode
+				}
+
+				if showGallery {
+					// Gallery view in fullscreen
+					gtx.Constraints.Min = gtx.Constraints.Max // Make fullscreen
+					gallery.Layout(gtx, th)
+				} else if showSettings {
+					// Settings view in fullscreen
+					gtx.Constraints.Min = gtx.Constraints.Max // Make fullscreen
+					layout.Flex{
+						Axis:    layout.Vertical,
+						Spacing: layout.SpaceStart,
+					}.Layout(gtx,
+						// Back button at top
+						layout.Rigid(
+							func(gtx C) D {
+								return layout.Inset{Top: unit.Dp(8), Left: unit.Dp(8)}.Layout(gtx,
+									material.Button(th, &backButton, "Back").Layout,
+								)
+							},
+						),
+						// Load config button
+						layout.Rigid(
+							func(gtx C) D {
+								return layout.Inset{Top: unit.Dp(8), Left: unit.Dp(8)}.Layout(gtx,
+									material.Button(th, &loadConfigButton, "Load Config").Layout,
+								)
+							},
+						),
+						// Settings list
+						layout.Rigid(
+							func(gtx C) D {
+								gtx.Constraints.Min.X = gtx.Dp(unit.Dp(300)) // Minimum width for touch
+								gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(600)) // More vertical space
+								return material.List(th, list).Layout(gtx, len(OptionsList), func(gtx C, i int) D {
+									return layout.UniformInset(unit.Dp(0)).Layout(gtx, OptionsList[i])
+								})
+							},
+						),
+					)
+				} else {
+					// Main view
+					layout.Flex{
+						Axis:    layout.Vertical,
+						Spacing: layout.SpaceStart,
+					}.Layout(gtx,
+						// Preview checkbox at top
+						layout.Rigid(
+							func(gtx C) D {
+								return layout.Inset{Top: unit.Dp(8), Left: unit.Dp(8)}.Layout(gtx,
+									material.CheckBox(th, PreviewCheckbox, "Preview").Layout,
+								)
+							},
+						),
+						// Center shot button
+						layout.Flexed(1,
+							func(gtx C) D {
+								return layout.Center.Layout(gtx,
+									func(gtx C) D {
+										btn := material.Button(th, &shotButton, "Take a Shot")
+										btn.TextSize = unit.Sp(24)
+										btn.Background = th.Palette.ContrastBg
+										btn.Inset = layout.UniformInset(unit.Dp(32))
+										return btn.Layout(gtx)
+									},
+								)
+							},
+						),
+						// Bottom buttons
+						layout.Rigid(
+							func(gtx C) D {
+								return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+									layout.Flexed(1, func(gtx C) D {
+										return layout.E.Layout(gtx, func(gtx C) D {
+											return layout.Inset{Bottom: unit.Dp(16), Right: unit.Dp(16)}.Layout(gtx,
+												func(gtx C) D {
+													galleryBtn := material.Button(th, &galleryButton, "🖼")
+													galleryBtn.Background = th.Palette.Bg
+													galleryBtn.Color = th.Palette.Fg
+													galleryBtn.TextSize = unit.Sp(18)
+													galleryBtn.Inset = layout.UniformInset(unit.Dp(8))
+													return galleryBtn.Layout(gtx)
+												},
+											)
+										})
+									}),
+									layout.Rigid(func(gtx C) D {
+										return layout.E.Layout(gtx, func(gtx C) D {
+											return layout.Inset{Bottom: unit.Dp(16), Right: unit.Dp(16)}.Layout(gtx,
+												func(gtx C) D {
+													btn := material.Button(th, &settingsButton, "⚙")
+													btn.Background = th.Palette.Bg
+													btn.Color = th.Palette.Fg
+													btn.TextSize = unit.Sp(18)
+													btn.Inset = layout.UniformInset(unit.Dp(8))
+													return btn.Layout(gtx)
+												},
+											)
+										})
+									}),
+								)
+							},
+						),
+					)
+				}
+
 				e.Frame(gtx.Ops)
 
-				//ugly workaroung in order to position the app at startup
 				if !windowPositioned {
-					settings(&gtx, th)
-          			w.Invalidate()
-          			
+					settings(gtx, th)
+					w.Invalidate()
 					moveWindow()
 					windowPositioned = true
-
 					managePreview()
 				}
 			}
-
 		}
 	}
-	return nil
 }
 
 func moveWindow() {
 	cmd := exec.Command("xdotool",
 		"search",
-		"--class",
+		"--name",
 		config.Properties.App.Title,
 		"windowmove",
 		strconv.Itoa(config.Properties.App.X),
