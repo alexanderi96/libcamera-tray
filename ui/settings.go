@@ -23,6 +23,9 @@ var (
 
 	// Store sliders for numeric values
 	sliders = make(map[string]*widget.Float)
+	
+	// Store editors for text values
+	editors = make(map[string]*widget.Editor)
 
 	// Track expanded state of categories
 	basicExpanded = &widget.Bool{Value: true}
@@ -124,10 +127,13 @@ func createSettingRow(gtx C, th *material.Theme, key string, opt types.Parameter
 	}
 
 	if checkbox.Changed() {
+		// Batch setting changes before restarting preview
 		opt.Toggle()
 		camera.Params[key] = opt
-		// Restart preview to apply changes if enabled
-		if PreviewCheckbox.Value {
+		
+		// Only restart preview for settings that require it
+		if key == "brightness" || key == "contrast" || key == "saturation" || 
+		   key == "sharpness" || key == "ev" || key == "denoise" {
 			camera.StopPreviewAndReload(func() {
 				camera.StartPreview()
 			})
@@ -178,8 +184,10 @@ func getSettingsRow(gtx C, th *material.Theme, checkbox *widget.Bool, key string
 								StillSpecific: opt.StillSpecific,
 								Description: opt.Description,
 							}
-							// Restart preview to apply changes if enabled
-							if PreviewCheckbox.Value {
+							
+							// Only restart preview for settings that affect live view
+							if key == "brightness" || key == "contrast" || key == "saturation" || 
+							   key == "sharpness" || key == "ev" || key == "denoise" {
 								camera.StopPreviewAndReload(func() {
 									camera.StartPreview()
 								})
@@ -191,9 +199,32 @@ func getSettingsRow(gtx C, th *material.Theme, checkbox *widget.Bool, key string
 						return layout.Inset{Left: unit.Dp(16)}.Layout(gtx, sliderStyle.Layout)
 					} else {
 						// Text editor for non-numeric values
-						editor := &widget.Editor{SingleLine: true}
-						editor.SetText(opt.Value)
-						return layout.Inset{Left: unit.Dp(16)}.Layout(gtx, material.Editor(th, editor, "").Layout)
+						if _, exists := editors[key]; !exists {
+							editors[key] = &widget.Editor{SingleLine: true}
+							editors[key].SetText(opt.Value)
+						}
+						
+						if editors[key].Focused() {
+							if editors[key].Text() != opt.Value {
+								camera.Params[key] = types.Parameter{
+									Command: opt.Command,
+									Value: editors[key].Text(),
+									Enabled: opt.Enabled,
+									StillSpecific: opt.StillSpecific,
+									Description: opt.Description,
+								}
+								
+								// Only restart preview for settings that affect live view
+								if key == "brightness" || key == "contrast" || key == "saturation" || 
+								   key == "sharpness" || key == "ev" || key == "denoise" {
+									camera.StopPreviewAndReload(func() {
+										camera.StartPreview()
+									})
+								}
+							}
+						}
+						
+						return layout.Inset{Left: unit.Dp(16)}.Layout(gtx, material.Editor(th, editors[key], "").Layout)
 					}
 				}),
 			)

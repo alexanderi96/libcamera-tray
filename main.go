@@ -22,12 +22,16 @@ func main() {
 				unit.Dp(config.Properties.App.Width),
 				unit.Dp(config.Properties.App.Height),
 			),
+			app.MinSize(
+				unit.Dp(800),  // Minimum width to accommodate preview
+				unit.Dp(480),  // Minimum height
+			),
 		)
 		if err := ui.Draw(w); err != nil {
 			log.Fatal(err)
 		}
 
-		if utils.IsItRunning("libcamera-hello") {
+		if utils.IsItRunning("libcamera-vid") {
 			camera.StopPreview()
 		}
 		log.Println("Exiting.")

@@ -21,12 +21,16 @@ type Gallery struct {
 	list       widget.List
 	backBtn    widget.Clickable
 	gridBtn    widget.Clickable
+	maxThumbnails int // Maximum number of thumbnails to keep in memory
 }
+
+const defaultMaxThumbnails = 50 // Adjust based on typical memory constraints
 
 func NewGallery() *Gallery {
 	return &Gallery{
 		thumbnails: make(map[string]image.Image),
 		gridMode:   true,
+		maxThumbnails: defaultMaxThumbnails,
 		list: widget.List{
 			List: layout.List{
 				Axis:        layout.Vertical,
@@ -34,6 +38,11 @@ func NewGallery() *Gallery {
 			},
 		},
 	}
+}
+
+// Cleanup releases memory used by thumbnails
+func (g *Gallery) Cleanup() {
+	g.thumbnails = make(map[string]image.Image)
 }
 
 func (g *Gallery) LoadImages() error {
@@ -69,6 +78,11 @@ func (g *Gallery) LoadImages() error {
 func (g *Gallery) loadThumbnail(path string) (image.Image, error) {
 	if thumb, ok := g.thumbnails[path]; ok {
 		return thumb, nil
+	}
+
+	// Clean up old thumbnails if we've exceeded the limit
+	if len(g.thumbnails) >= g.maxThumbnails {
+		g.Cleanup()
 	}
 
 	file, err := os.Open(path)

@@ -1,18 +1,22 @@
 {
     "app": {
         "title": "libcamera-tray",
-        "description": "libcamera-apps wapprer wreitten in go",
-        "width": 300,
+        "description": "libcamera-apps wrapper written in go",
+        "width": 800,
         "height": 480,
         "x": 500,
         "y": 36
     },
     "preview": {
         "enabled": true,
-        "width": 500,
+        "width": 640,
         "height": 480,
         "x": 0,
         "y": 0
+    },
+    "logging": {
+        "debug": true,
+        "logFile": "libcamera-tray.log"
     },
     "dateFormat": "2006-01-02",
     "timeFormat": "15:04:05",
