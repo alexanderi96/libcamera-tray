@@ -15,7 +15,7 @@ import (
 	"gioui.org/io/system"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
+	// "gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -85,9 +85,25 @@ func layoutFrame(gtx C, th *material.Theme, frame image.Image) D {
 	
 	return pointer.Layout(gtx, func(gtx C) D {
 		return layout.Center.Layout(gtx, func(gtx C) D {
+			// Calculate aspect ratio constrained size
+			imgSize := imageOp.Size()
+			aspect := float32(imgSize.X) / float32(imgSize.Y)
+			
+			dstWidth := gtx.Constraints.Max.X
+			dstHeight := int(float32(dstWidth) / aspect)
+			
+			if dstHeight > gtx.Constraints.Max.Y {
+				dstHeight = gtx.Constraints.Max.Y
+				dstWidth = int(float32(dstHeight) * aspect)
+			}
+			
+			gtx.Constraints.Min = image.Point{X: dstWidth, Y: dstHeight}
+			gtx.Constraints.Max = image.Point{X: dstWidth, Y: dstHeight}
+			
 			return widget.Image{
 				Src:   imageOp,
-				Fit:   widget.Fill,
+				Fit:   widget.Contain,
+				Scale: 1,
 			}.Layout(gtx)
 		})
 	})
@@ -120,90 +136,127 @@ func layoutStats(th *material.Theme) layout.Widget {
 // layoutControls handles the right-side control panel
 func layoutControls(gtx C, th *material.Theme) D {
 	gtx.Constraints.Min.Y = gtx.Constraints.Max.Y
-	return layout.Flex{
-		Axis:      layout.Vertical,
-		Spacing:   layout.SpaceBetween,
-		Alignment: layout.Middle,
-	}.Layout(gtx,
-		layout.Rigid(func(gtx C) D {
-			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-				layout.Rigid(func(gtx C) D {
-					return layout.Inset{Right: unit.Dp(8)}.Layout(gtx, func(gtx C) D {
+	
+	// Calculate sizes based on available height
+	controlsWidth := gtx.Dp(unit.Dp(180))  // Wider controls panel
+	shotButtonSize := gtx.Dp(unit.Dp(160)) // Larger capture button
+	topButtonSize := gtx.Dp(unit.Dp(50))   // Larger gallery/settings buttons
+	
+	return layout.Inset{
+		Top: unit.Dp(16),
+		Right: unit.Dp(16),
+		Bottom: unit.Dp(16),
+	}.Layout(gtx, func(gtx C) D {
+		gtx.Constraints.Min.X = controlsWidth
+		gtx.Constraints.Max.X = controlsWidth
+		
+		return layout.Flex{
+			Axis:      layout.Vertical,
+			Spacing:   layout.SpaceBetween,
+			Alignment: layout.Middle,
+		}.Layout(gtx,
+			// Top buttons (gallery and settings)
+			layout.Rigid(func(gtx C) D {
+				return layout.Flex{
+					Axis: layout.Horizontal,
+					Spacing: layout.SpaceEvenly,
+					Alignment: layout.Middle,
+				}.Layout(gtx,
+					layout.Rigid(func(gtx C) D {
+						gtx.Constraints.Min = image.Point{X: topButtonSize, Y: topButtonSize}
+						gtx.Constraints.Max = image.Point{X: topButtonSize, Y: topButtonSize}
+						
 						btn := material.Button(th, &galleryButton, "🖼")
 						btn.Background = th.Palette.Bg
 						btn.Color = th.Palette.Fg
-						btn.TextSize = unit.Sp(18)
-						btn.Inset = layout.UniformInset(unit.Dp(8))
+						btn.TextSize = unit.Sp(24)
+						btn.Inset = layout.UniformInset(unit.Dp(0))
 						return btn.Layout(gtx)
-					})
-				}),
-				layout.Rigid(func(gtx C) D {
-					return layout.Inset{Right: unit.Dp(8)}.Layout(gtx, func(gtx C) D {
+					}),
+					layout.Rigid(func(gtx C) D {
+						gtx.Constraints.Min = image.Point{X: topButtonSize, Y: topButtonSize}
+						gtx.Constraints.Max = image.Point{X: topButtonSize, Y: topButtonSize}
+						
 						btn := material.Button(th, &settingsButton, "⚙")
 						btn.Background = th.Palette.Bg
 						btn.Color = th.Palette.Fg
-						btn.TextSize = unit.Sp(18)
-						btn.Inset = layout.UniformInset(unit.Dp(8))
-						return btn.Layout(gtx)
-					})
-				}),
-			)
-		}),
-		layout.Rigid(func(gtx C) D {
-			return layout.Center.Layout(gtx, func(gtx C) D {
-				return layout.Stack{}.Layout(gtx,
-					layout.Expanded(func(gtx C) D {
-						btn := material.Button(th, &shotButton, "Take a Shot")
 						btn.TextSize = unit.Sp(24)
-						btn.Background = th.Palette.ContrastBg
-						btn.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-						btn.Inset = layout.UniformInset(unit.Dp(48))
+						btn.Inset = layout.UniformInset(unit.Dp(0))
 						return btn.Layout(gtx)
-					}),
-					layout.Expanded(func(gtx C) D {
-						defer clip.Stroke{
-							Path:  clip.Rect{Max: gtx.Constraints.Min}.Path(),
-							Width: float32(gtx.Dp(1)),
-						}.Op().Push(gtx.Ops).Pop()
-						paint.ColorOp{Color: color.NRGBA{R: 255, G: 255, B: 255, A: 255}}.Add(gtx.Ops)
-						paint.PaintOp{}.Add(gtx.Ops)
-						return D{Size: gtx.Constraints.Min}
 					}),
 				)
-			})
-		}),
-		layout.Rigid(func(gtx C) D {
-			size := gtx.Dp(unit.Dp(72))
-			return D{Size: image.Point{X: size, Y: size}}
-		}),
-	)
+			}),
+			// Centered capture button
+			layout.Rigid(func(gtx C) D {
+				return layout.Center.Layout(gtx, func(gtx C) D {
+					gtx.Constraints.Min = image.Point{X: shotButtonSize, Y: shotButtonSize}
+					gtx.Constraints.Max = image.Point{X: shotButtonSize, Y: shotButtonSize}
+					
+					return layout.Stack{}.Layout(gtx,
+						layout.Expanded(func(gtx C) D {
+							btn := material.Button(th, &shotButton, "📸")
+							btn.TextSize = unit.Sp(64)
+							btn.Background = th.Palette.ContrastBg
+							btn.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+							btn.Inset = layout.UniformInset(unit.Dp(0))
+							return btn.Layout(gtx)
+						}),
+					)
+				})
+			}),
+			// Bottom spacer
+			layout.Rigid(layout.Spacer{Height: unit.Dp(topButtonSize)}.Layout),
+		)
+	})
 }
 
-// layoutSettings displays the settings view
+// layoutSettings displays the settings view as a transparent overlay
 func layoutSettings(gtx C, th *material.Theme) D {
-	gtx.Constraints.Min = gtx.Constraints.Max
-	return layout.Flex{
-		Axis:    layout.Vertical,
-		Spacing: layout.SpaceStart,
-	}.Layout(gtx,
-		layout.Rigid(func(gtx C) D {
-			return layout.Inset{Top: unit.Dp(8), Left: unit.Dp(8)}.Layout(gtx,
-				material.Button(th, &backButton, "Back").Layout,
-			)
-		}),
-		layout.Rigid(func(gtx C) D {
-			return layout.Inset{Top: unit.Dp(8), Left: unit.Dp(8)}.Layout(gtx,
-				material.Button(th, &loadConfigButton, "Load Config").Layout,
-			)
-		}),
-		layout.Rigid(func(gtx C) D {
-			gtx.Constraints.Min.X = gtx.Dp(unit.Dp(300))
-			gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(600))
-			return material.List(th, list).Layout(gtx, len(OptionsList), func(gtx C, i int) D {
-				return layout.UniformInset(unit.Dp(0)).Layout(gtx, OptionsList[i])
-			})
-		}),
-	)
+	// Initialize settings if needed
+	if len(OptionsList) == 0 {
+		settings(gtx, th)
+	}
+	
+	inset := layout.UniformInset(unit.Dp(16))
+	return inset.Layout(gtx, func(gtx C) D {
+		return layout.Flex{
+			Axis:    layout.Vertical,
+			Spacing: layout.SpaceStart,
+		}.Layout(gtx,
+			layout.Rigid(func(gtx C) D {
+				return layout.Flex{Spacing: layout.SpaceBetween}.Layout(gtx,
+					layout.Rigid(func(gtx C) D {
+						btn := material.Button(th, &backButton, "✕")
+						btn.Background = color.NRGBA{A: 0}
+						btn.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+						btn.TextSize = unit.Sp(20)
+						btn.Inset = layout.UniformInset(unit.Dp(8))
+						return btn.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx C) D {
+						btn := material.Button(th, &loadConfigButton, "Load Config")
+						btn.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 128}
+						btn.Color = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+						return btn.Layout(gtx)
+					}),
+				)
+			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(16)}.Layout),
+			layout.Rigid(func(gtx C) D {
+				bg := color.NRGBA{R: 0, G: 0, B: 0, A: 230}
+				paint.ColorOp{Color: bg}.Add(gtx.Ops)
+				paint.PaintOp{}.Add(gtx.Ops)
+				
+				return layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx C) D {
+					gtx.Constraints.Min.X = gtx.Dp(unit.Dp(300))
+					gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(600))
+					return material.List(th, list).Layout(gtx, len(OptionsList), func(gtx C, i int) D {
+						return layout.UniformInset(unit.Dp(4)).Layout(gtx, OptionsList[i])
+					})
+				})
+			}),
+		)
+	})
 }
 
 func min(a, b float32) float32 {
@@ -264,12 +317,17 @@ func handleEvents(gtx C, th *material.Theme, expl *explorer.Explorer, w *app.Win
 			camera.StopPreviewAndReload(func() {
 				log.Println("Settings loaded configs.")
 				camera.Params.LoadParamsMap(buf.Bytes())
-				settings(gtx, th)
 			})
 		}()
 	}
 	if galleryButton.Clicked() {
 		showGallery = true
+		// Stop preview when entering gallery
+		previewMutex.Lock()
+		previewFrames = nil
+		currentFrame = nil
+		previewMutex.Unlock()
+		
 		if err := gallery.LoadImages(); err != nil {
 			log.Printf("Error loading gallery images: %v", err)
 		}
@@ -277,6 +335,10 @@ func handleEvents(gtx C, th *material.Theme, expl *explorer.Explorer, w *app.Win
 	if gallery.backBtn.Clicked() {
 		showGallery = false
 		gallery.Cleanup()
+		// Restart preview when exiting gallery
+		previewMutex.Lock()
+		previewFrames = camera.StartPreview()
+		previewMutex.Unlock()
 	}
 	if gallery.gridBtn.Clicked() {
 		gallery.gridMode = !gallery.gridMode
@@ -289,21 +351,33 @@ func layoutMainView(gtx C, th *material.Theme) D {
 		return layoutPreview(gtx, th, true)
 	}
 	
-	return layout.Flex{
-		Axis:    layout.Horizontal,
-		Spacing: layout.SpaceBetween,
-	}.Layout(gtx,
-		layout.Flexed(1, func(gtx C) D {
-			return layout.Inset{
-				Top: unit.Dp(8),
-				Bottom: unit.Dp(8),
-				Left: unit.Dp(8),
-			}.Layout(gtx, func(gtx C) D {
-				return layoutPreview(gtx, th, false)
-			})
+	return layout.Stack{}.Layout(gtx,
+		layout.Expanded(func(gtx C) D {
+			return layout.Flex{
+				Axis:    layout.Horizontal,
+				Spacing: layout.SpaceBetween,
+			}.Layout(gtx,
+				layout.Flexed(1, func(gtx C) D {
+					return layout.Inset{
+						Top: unit.Dp(8),
+						Bottom: unit.Dp(8),
+						Left: unit.Dp(8),
+					}.Layout(gtx, func(gtx C) D {
+						return layoutPreview(gtx, th, false)
+					})
+				}),
+				layout.Rigid(func(gtx C) D {
+					return layoutControls(gtx, th)
+				}),
+			)
 		}),
-		layout.Rigid(func(gtx C) D {
-			return layoutControls(gtx, th)
+		layout.Stacked(func(gtx C) D {
+			if !showSettings {
+				return D{}
+			}
+			paint.ColorOp{Color: color.NRGBA{A: 200}}.Add(gtx.Ops)
+			paint.PaintOp{}.Add(gtx.Ops)
+			return layoutSettings(gtx, th)
 		}),
 	)
 }
@@ -314,7 +388,6 @@ func Draw(w *app.Window) error {
 	th.Palette.ContrastBg = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
 	expl := explorer.NewExplorer(w)
 	
-	settings(layout.NewContext(&ops, system.FrameEvent{}), th)
 	previewFrames = camera.StartPreview()
 	
 	// Start frame handling goroutine
@@ -382,8 +455,6 @@ func Draw(w *app.Window) error {
 						}
 					}
 					gallery.Layout(gtx, th)
-				} else if showSettings {
-					layoutSettings(gtx, th)
 				} else {
 					layoutMainView(gtx, th)
 				}

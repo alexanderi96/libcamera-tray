@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
+	"golang.org/x/image/draw"
 
 	"gioui.org/layout"
 	"gioui.org/op/paint"
@@ -14,22 +16,29 @@ import (
 )
 
 type Gallery struct {
-	images     []string
-	thumbnails map[string]image.Image
-	selected   int
-	gridMode   bool
-	list       widget.List
-	backBtn    widget.Clickable
-	gridBtn    widget.Clickable
-	maxThumbnails int // Maximum number of thumbnails to keep in memory
+	images        []string
+	thumbnails    map[string]image.Image
+	selected      int
+	gridMode      bool
+	list          widget.List
+	backBtn       widget.Clickable
+	gridBtn       widget.Clickable
+	maxThumbnails int
+	loadingMutex  sync.RWMutex
+	loadQueue     chan string
+	workerCount   int
 }
 
-const defaultMaxThumbnails = 50 // Adjust based on typical memory constraints
+const (
+	defaultMaxThumbnails = 50
+	thumbnailSize        = 300 // Max dimension for thumbnails
+	workerCount         = 4   // Number of concurrent image loading workers
+)
 
 func NewGallery() *Gallery {
-	return &Gallery{
-		thumbnails: make(map[string]image.Image),
-		gridMode:   true,
+	g := &Gallery{
+		thumbnails:    make(map[string]image.Image),
+		gridMode:      true,
 		maxThumbnails: defaultMaxThumbnails,
 		list: widget.List{
 			List: layout.List{
@@ -37,7 +46,16 @@ func NewGallery() *Gallery {
 				ScrollToEnd: false,
 			},
 		},
+		loadQueue:   make(chan string, 100),
+		workerCount: workerCount,
 	}
+	
+	// Start worker pool
+	for i := 0; i < g.workerCount; i++ {
+		go g.thumbnailWorker()
+	}
+	
+	return g
 }
 
 // Cleanup releases memory used by thumbnails
@@ -75,29 +93,71 @@ func (g *Gallery) LoadImages() error {
 	return err
 }
 
+func (g *Gallery) thumbnailWorker() {
+	for path := range g.loadQueue {
+		g.loadingMutex.RLock()
+		_, exists := g.thumbnails[path]
+		g.loadingMutex.RUnlock()
+		if exists {
+			continue
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			continue
+		}
+
+		img, _, err := image.Decode(file)
+		file.Close()
+		if err != nil {
+			continue
+		}
+
+		// Resize image to thumbnail size
+		bounds := img.Bounds()
+		width, height := bounds.Dx(), bounds.Dy()
+		scale := float64(thumbnailSize) / float64(max(width, height))
+		if scale < 1 {
+			width = int(float64(width) * scale)
+			height = int(float64(height) * scale)
+			thumb := image.NewRGBA(image.Rect(0, 0, width, height))
+			draw.BiLinear.Scale(thumb, thumb.Bounds(), img, bounds, draw.Over, nil)
+			img = thumb
+		}
+
+		g.loadingMutex.Lock()
+		if len(g.thumbnails) >= g.maxThumbnails {
+			g.Cleanup()
+		}
+		g.thumbnails[path] = img
+		g.loadingMutex.Unlock()
+	}
+}
+
 func (g *Gallery) loadThumbnail(path string) (image.Image, error) {
-	if thumb, ok := g.thumbnails[path]; ok {
+	g.loadingMutex.RLock()
+	thumb, ok := g.thumbnails[path]
+	g.loadingMutex.RUnlock()
+	
+	if ok {
 		return thumb, nil
 	}
 
-	// Clean up old thumbnails if we've exceeded the limit
-	if len(g.thumbnails) >= g.maxThumbnails {
-		g.Cleanup()
+	// Queue image for loading if not already loaded
+	select {
+	case g.loadQueue <- path:
+	default:
+		// Queue is full, skip for now
 	}
 
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+	return nil, nil
+}
 
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
+func max(a, b int) int {
+	if a > b {
+		return a
 	}
-
-	g.thumbnails[path] = img
-	return img, nil
+	return b
 }
 
 func (g *Gallery) Layout(gtx layout.Context, th *material.Theme) layout.Dimensions {
@@ -170,10 +230,7 @@ func (g *Gallery) layoutGrid(gtx layout.Context, th *material.Theme) layout.Dime
 }
 
 func (g *Gallery) layoutThumbnail(gtx layout.Context, th *material.Theme, path string, size int, idx int) layout.Dimensions {
-	img, err := g.loadThumbnail(path)
-	if err != nil {
-		return material.Body1(th, "Error loading image").Layout(gtx)
-	}
+	img, _ := g.loadThumbnail(path)
 
 	gtx.Constraints.Min = image.Point{X: size, Y: size}
 	gtx.Constraints.Max = image.Point{X: size, Y: size}
@@ -187,6 +244,10 @@ func (g *Gallery) layoutThumbnail(gtx layout.Context, th *material.Theme, path s
 	return btn.Layout(gtx, func(gtx C) D {
 		return layout.Stack{}.Layout(gtx,
 			layout.Stacked(func(gtx C) D {
+				if img == nil {
+					// Show loading placeholder while image is being loaded
+					return material.Body1(th, "Loading...").Layout(gtx)
+				}
 				return widget.Image{
 					Src:      paint.NewImageOp(img),
 					Fit:      widget.Cover,
@@ -202,9 +263,11 @@ func (g *Gallery) layoutSingle(gtx layout.Context, th *material.Theme) layout.Di
 		return layout.Dimensions{}
 	}
 
-	img, err := g.loadThumbnail(g.images[g.selected])
-	if err != nil {
-		return material.Body1(th, "Error loading image").Layout(gtx)
+	img, _ := g.loadThumbnail(g.images[g.selected])
+	if img == nil {
+		return layout.Center.Layout(gtx, func(gtx C) D {
+			return material.Body1(th, "Loading...").Layout(gtx)
+		})
 	}
 
 	return layout.Stack{}.Layout(gtx,
